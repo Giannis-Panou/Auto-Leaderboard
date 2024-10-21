@@ -1,29 +1,70 @@
 const pointsSystem = [10, 8, 6, 4, 2];
 let leaderboard = {};
 
-// Parse JSON
-function parseResults(file) {
+// // Parse JSON
+// function parseJsonResults(file) {
+// 	const reader = new FileReader();
+
+// 	reader.onload = function (event) {
+// 		try {
+// 			const results = JSON.parse(event.target.result);
+// 			updateLeaderboard(results); // Update leaderboard with the parsed data
+// 		} catch (error) {
+// 			console.error('Error parsing JSON:', error);
+// 			alert('Error parsing JSON file. Please check the file format.');
+// 		}
+// 	};
+
+// 	reader.readAsText(file); // Read the file content as text
+// }
+
+// Parse CSV
+function processCsvResults(file) {
 	const reader = new FileReader();
 
 	reader.onload = function (event) {
 		try {
-			const results = JSON.parse(event.target.result);
-			updateLeaderboard(results);
+			const csvResults = event.target.result;
+			const jsonResults = csvToJson(csvResults);
+			updateLeaderboard(jsonResults);
 		} catch (error) {
-			console.error('Error parsing JSON:', error);
-			alert('Error parsing JSON file. Please check the file format.');
+			console.error('Error processing CSV:', error);
+			alert('Error processing CSV file. Please check the file format.');
 		}
 	};
 
 	reader.readAsText(file);
 }
 
+// CSV to JSON
+function csvToJson(csv) {
+	const lines = csv.split('\n');
+
+	const results = lines
+		.slice(1)
+		.map((line) => {
+			const values = line.split(',');
+
+			if (values.length >= 2) {
+				return {
+					username: values[1].trim(),
+					place: parseInt(values[0].trim(), 10),
+				};
+			}
+
+			return null;
+		})
+		.filter((result) => result !== null);
+
+	return results;
+}
+
 // Update leaderboard
 function updateLeaderboard(playersResults) {
 	playersResults.forEach((player) => {
-		const { DisplayName, Rank } = player;
-		const points = pointsSystem[Rank - 1] || 0;
-		leaderboard[DisplayName] = (leaderboard[DisplayName] || 0) + points;
+		const { username, place } = player;
+		const points = pointsSystem[place - 1] || 0;
+		leaderboard[username] = (leaderboard[username] || 0) + points;
 	});
 	saveLeaderboard();
 	displayLeaderboard();
@@ -91,10 +132,15 @@ function handleLoadResults() {
 	const file = jsonFileInput.files[0];
 
 	if (file) {
-		parseResults(file);
+		if (file.name.endsWith('.csv')) {
+			processCsvResults(file);
+		} else {
+			alert('Please upload a CSV file.');
+		}
+
 		jsonFileInput.value = '';
 	} else {
-		alert('Please select a JSON file!');
+		alert('Please select a file.');
 	}
 }
 
