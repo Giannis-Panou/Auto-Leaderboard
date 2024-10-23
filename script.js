@@ -1,4 +1,5 @@
-const pointsSystem = [10, 8, 6, 4, 2];
+const pointsSystem = [30, 24, 21, 19, 17, 15, 13, 11, 9, 7, 5, 4, 3, 2, 1];
+const powerStagePoints = [5, 4, 3, 2, 1];
 let leaderboard = {};
 
 // // Parse JSON
@@ -26,7 +27,7 @@ function processCsvResults(file) {
 		try {
 			const csvResults = event.target.result;
 			const jsonResults = csvToJson(csvResults);
-			updateLeaderboard(jsonResults);
+			updateLeaderboard(jsonResults, file);
 		} catch (error) {
 			console.error('Error processing CSV:', error);
 			alert('Error processing CSV file. Please check the file format.');
@@ -60,12 +61,20 @@ function csvToJson(csv) {
 }
 
 // Update leaderboard
-function updateLeaderboard(playersResults) {
-	playersResults.forEach((player) => {
-		const { username, place } = player;
-		const points = pointsSystem[place - 1] || 0;
-		leaderboard[username] = (leaderboard[username] || 0) + points;
-	});
+function updateLeaderboard(playersResults, file) {
+	if (file.name.endsWith('_powerstage.csv')) {
+		playersResults.forEach((player) => {
+			const { username, place } = player;
+			const points = powerStagePoints[place - 1] || 0;
+			leaderboard[username] = (leaderboard[username] || 0) + points;
+		});
+	} else {
+		playersResults.forEach((player) => {
+			const { username, place } = player;
+			const points = pointsSystem[place - 1] || 0;
+			leaderboard[username] = (leaderboard[username] || 0) + points;
+		});
+	}
 	saveLeaderboard();
 	displayLeaderboard();
 }
@@ -128,8 +137,8 @@ function exportResults() {
 
 // Load Results
 function handleLoadResults() {
-	const jsonFileInput = document.getElementById('json-file');
-	const file = jsonFileInput.files[0];
+	const csvFileInput = document.getElementById('csv-file');
+	const file = csvFileInput.files[0];
 
 	if (file) {
 		if (file.name.endsWith('.csv')) {
@@ -138,7 +147,7 @@ function handleLoadResults() {
 			alert('Please upload a CSV file.');
 		}
 
-		jsonFileInput.value = '';
+		csvFileInput.value = '';
 	} else {
 		alert('Please select a file.');
 	}
