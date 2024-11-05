@@ -11,7 +11,19 @@ function processCsvResults(file) {
 		try {
 			const csvResults = event.target.result;
 			const jsonResults = csvToJson(csvResults);
-			updateLeaderboard(jsonResults, file);
+			const teamsFromStorage = JSON.parse(localStorage.getItem('teams')) || [];
+
+			const combinedResults = jsonResults.map((player) => {
+				const teamEntry = teamsFromStorage.find(
+					(team) => team.username === player.username
+				);
+				return {
+					...player,
+					team: teamEntry ? teamEntry.team : 'Unknown',
+				};
+			});
+
+			updateLeaderboard(combinedResults, file);
 		} catch (error) {
 			console.error('Error processing CSV:', error);
 			alert('Error processing CSV file. Please check the file format.');
@@ -230,8 +242,11 @@ function handleLoadResults() {
 
 	if (file) {
 		if (file.name.endsWith('.csv')) {
-			processTeamCsv(file);
-			processCsvResults(file);
+			if (file.name.includes('_teams.csv')) {
+				processTeamCsv(file);
+			} else {
+				processCsvResults(file);
+			}
 		} else {
 			alert('Please upload a CSV file.');
 		}
