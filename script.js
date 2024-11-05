@@ -109,6 +109,8 @@ function updateLeaderboard(playersResults, file) {
 		? powerStagePoints
 		: pointsSystem;
 
+	const teamScores = {};
+
 	playersResults.forEach((player) => {
 		const { username, place, team } = player;
 		const points = pointsArray[place - 1] || 0;
@@ -116,8 +118,16 @@ function updateLeaderboard(playersResults, file) {
 		leaderboard[username] = (leaderboard[username] || 0) + points;
 
 		if (team) {
-			teamLeaderboard[team] = (teamLeaderboard[team] || 0) + points;
+			if (!teamScores[team]) teamScores[team] = [];
+			teamScores[team].push(points);
 		}
+	});
+
+	Object.keys(teamScores).forEach((team) => {
+		const topScores = teamScores[team].sort((a, b) => b - a).slice(0, 2);
+
+		const teamPoints = topScores.reduce((acc, score) => acc + score, 0);
+		teamLeaderboard[team] = (teamLeaderboard[team] || 0) + teamPoints;
 	});
 
 	saveLeaderboard();
@@ -191,7 +201,7 @@ function loadTeamLeaderboard() {
 	const savedLeaderboard = localStorage.getItem('teamLeaderboard');
 	if (savedLeaderboard) {
 		teamLeaderboard = JSON.parse(savedLeaderboard);
-		displayLeaderboard();
+		displayTeamLeaderboard();
 	}
 }
 
