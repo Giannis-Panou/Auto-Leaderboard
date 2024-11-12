@@ -148,9 +148,10 @@ function displayLeaderboard() {
 		const leaderboardHtml = sortedLeaderboard
 			.map(
 				([username, points], index) =>
-					`<div class="leaderboard-entry">${
-						index + 1
-					}. ${username}: ${points} points</div>`
+					`<div class="leaderboard-entry list-group-item d-flex justify-content-between">
+						<span>${index + 1}. ${username}</span>  
+						<span>${points} points</span>
+					</div>`
 			)
 			.join('');
 
@@ -171,9 +172,10 @@ function displayTeamLeaderboard() {
 		const leaderboardHtml = sortedLeaderboard
 			.map(
 				([team, points], index) =>
-					`<div class="leaderboard-entry">${
-						index + 1
-					}. ${team}: ${points} points</div>`
+					`<div class="leaderboard-entry list-group-item d-flex justify-content-between">
+						<span>${index + 1}. ${team}: </span>
+						<span>${points} points </span>
+					</div>`
 			)
 			.join('');
 
