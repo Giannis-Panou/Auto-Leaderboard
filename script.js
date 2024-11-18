@@ -235,17 +235,17 @@ function clearLocalStorage() {
 	displayTeamLeaderboard();
 }
 
-// Export leaderboard
-function exportResults() {
-	const dataStr = JSON.stringify(leaderboard, null, 2);
-	const blob = new Blob([dataStr], { type: 'application/json' });
-	const url = URL.createObjectURL(blob);
-	const a = document.createElement('a');
-	a.href = url;
-	a.download = 'leaderboard.json';
-	a.click(); // Trigger download
-	URL.revokeObjectURL(url);
-}
+// // Export leaderboard
+// function exportResults() {
+// 	const dataStr = JSON.stringify(leaderboard, null, 2);
+// 	const blob = new Blob([dataStr], { type: 'application/json' });
+// 	const url = URL.createObjectURL(blob);
+// 	const a = document.createElement('a');
+// 	a.href = url;
+// 	a.download = 'leaderboard.json';
+// 	a.click(); // Trigger download
+// 	URL.revokeObjectURL(url);
+// }
 
 // Load Results
 function handleLoadResults() {
@@ -269,6 +269,88 @@ function handleLoadResults() {
 	}
 }
 
+// Export Leaderboards
+function exportLeaderboards() {
+	const leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || {};
+	const teamLeaderboard =
+		JSON.parse(localStorage.getItem('teamLeaderboard')) || {};
+
+	const sortedLeaderboard = Object.entries(leaderboard).sort(
+		(a, b) => b[1] - a[1]
+	);
+	const sortedTeamLeaderboard = Object.entries(teamLeaderboard).sort(
+		(a, b) => b[1] - a[1]
+	);
+
+	const chunkSize = 25;
+	const chunks = [];
+	for (let i = 0; i < sortedLeaderboard.length; i += chunkSize) {
+		chunks.push(sortedLeaderboard.slice(i, i + chunkSize));
+	}
+
+	const htmlContent = `<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="UTF-8">
+			<meta name="viewport" content="width=device-width, initial-scale=1.0">
+			<title>DHC Results & Standings</title>
+			<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+			<link rel="stylesheet" href="styles.css" />
+		</head>
+		<body class="bg-light d-flex">
+			<div id="leaderboardCarousel" class="carousel slide" data-bs-ride="carousel>
+				<div class="carousel-indicators">
+					${chunks
+						.map(
+							(_, i) =>
+								`<button type="button" data-bs-target="#leaderboardCarousel" data-bs-slide-to="${i}" class="${
+									i === 0 ? 'active' : ''
+								}" aria-current="${i === 0 ? 'true' : 'false'}"></button>`
+						)
+						.join('')}
+				</div>
+				<div class="mt-4 col-md-6">
+					<h2>Player Leaderboard</h2>
+					<ul class="list-group">
+						${sortedLeaderboard
+							.map(
+								([username, points], index) =>
+									`<li class="list-group-item d-flex justify-content-between">
+								<span>${index + 1}. ${username}</span>
+								<span>${points} points</span>
+							</li>`
+							)
+							.join('')}
+					</ul>
+				</div>
+
+				<div class="mt-4 col-md-6">
+					<h2>Team Leaderboard</h2>
+					<ul class="list-group">
+						${sortedTeamLeaderboard
+							.map(
+								([team, points], index) =>
+									`<li class="list-group-item d-flex justify-content-between">
+								<span>${index + 1}. ${team}</span>
+								<span>${points} points</span>
+							</li>`
+							)
+							.join('')}
+					</ul>
+				</div>
+		</body>
+	</html>`;
+
+	const blob = new Blob([htmlContent], { type: 'text/html' });
+	const url = URL.createObjectURL(blob);
+	window.open(url, '_blank');
+	const a = document.createElement('a');
+	a.href = url;
+	a.download = 'leaderboards.html';
+	a.click();
+	URL.revokeObjectURL(url);
+}
+
 window.addEventListener('DOMContentLoaded', () => {
 	loadLeaderboard();
 	loadTeamLeaderboard();
@@ -287,7 +369,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
 	document
 		.getElementById('export-results-btn')
-		.addEventListener('click', exportResults);
+		.addEventListener('click', exportLeaderboards);
 
 	document
 		.getElementById('delete-all-btn')
