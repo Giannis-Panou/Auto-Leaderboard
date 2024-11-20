@@ -3,7 +3,3 @@ body {
     overflow-x: hidden;
     padding: 5px;
 }
-
-.carousel-indicators button {
-    background-color: black;
-}
