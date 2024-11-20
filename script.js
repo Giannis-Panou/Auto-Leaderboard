@@ -298,17 +298,6 @@ function exportLeaderboards() {
 			<link rel="stylesheet" href="styles.css" />
 		</head>
 		<body class="bg-light d-flex">
-			<div id="leaderboardCarousel" class="carousel slide" data-bs-ride="carousel>
-				<div class="carousel-indicators">
-					${chunks
-						.map(
-							(_, i) =>
-								`<button type="button" data-bs-target="#leaderboardCarousel" data-bs-slide-to="${i}" class="${
-									i === 0 ? 'active' : ''
-								}" aria-current="${i === 0 ? 'true' : 'false'}"></button>`
-						)
-						.join('')}
-				</div>
 				<div class="mt-4 col-md-6">
 					<h2>Player Leaderboard</h2>
 					<ul class="list-group">
@@ -346,7 +335,7 @@ function exportLeaderboards() {
 	window.open(url, '_blank');
 	const a = document.createElement('a');
 	a.href = url;
-	a.download = 'leaderboards.html';
+	// a.download = 'leaderboards.html';
 	a.click();
 	URL.revokeObjectURL(url);
 }
