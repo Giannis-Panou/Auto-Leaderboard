@@ -117,6 +117,10 @@ function updateLeaderboard(playersResults, file) {
 
 		leaderboard[username] = (leaderboard[username] || 0) + points;
 
+		// if ((username = 'RG-Karafoulidis')) {
+		// 	points = 0;
+		// }
+
 		if (team) {
 			if (!teamScores[team]) teamScores[team] = [];
 			teamScores[team].push(points);
@@ -292,72 +296,60 @@ function exportLeaderboards() {
 
 	// Create the static HTML structure
 	const htmlContent = `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Leaderboards</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        .leaderboard-section {
-            display: flex;
-            justify-content: space-between;
-            gap: 20px;
-        }
-    </style>
-</head>
-<body>
-    <div class="container-fluid border">
-        <div class="row">
-            <div class="col-3">
-			<h3 class="text-end">Driver</h3>
-                <ul class="list-group">
-                    ${firstHalfPlayers
-											.map(
-												({ rank, username, points }) =>
-													`<li class="list-group-item d-flex justify-content-between align-items-center">
-                                    <span>${rank}. ${username}</span>
-                                	<span>${points} points</span>
-                                </li>`
-											)
-											.join('')}
-                </ul>
-            </div>
-            <div class="col-3">
-			<h3 class="text-start">Standings</h3>
-                <ul class="list-group">
-                    ${secondHalfPlayers
-											.map(
-												({ rank, username, points }) =>
-													`<li class="list-group-item d-flex justify-content-between align-items-center">
-														<span>${rank}. ${username}</span>
-														<span>${points} points</span>
-													</li>`
-											)
-											.join('')}
-                </ul>
-            </div>
-            <div class="col-6">
-                <h3 class="text-center">Team Standings</h3>
-                <ul class="list-group">
-                    ${sortedTeamLeaderboard
-											.map(
-												({ rank, team, points }) =>
-													`<li class="list-group-item d-flex justify-content-between align-items-center">
-                                    					<span>${rank}. ${team}</span>
-                                    					<span>${points} points</span>
-                                					</li>`
-											)
-											.join('')}
-                </ul>
-            </div>
-        </div>
-    </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
-    `;
+		<!DOCTYPE html>
+		<html lang="en">
+		<head>
+			<meta charset="UTF-8">
+			<meta name="viewport" content="width=device-width, initial-scale=1.0">
+			<title>Leaderboards</title>
+			<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+			<style>
+				.leaderboard-section {
+					display: flex;
+					justify-content: space-between;
+					gap: 20px;
+				}
+			</style>
+		</head>
+		<body>
+			<div class="container-fluid border">
+				<div class="row">
+					<div class="col-3">
+					<h3 class="text-end">Driver</h3>
+						<ul class="list-group">
+						${firstHalfPlayers.map(({ rank, username, points }) =>
+							`<li class="list-group-item d-flex justify-content-between align-items-center">
+								<span>${rank}. ${username}</span>
+								<span>${points} points</span>
+							</li>`).join('')}
+						</ul>
+					</div>
+					<div class="col-3">
+					<h3 class="text-start">Standings</h3>
+						<ul class="list-group">
+							${secondHalfPlayers.map(({ rank, username, points }) =>
+							`<li class="list-group-item d-flex justify-content-between align-items-center">
+								<span>${rank}. ${username}</span>
+								<span>${points} points</span>
+							</li>`).join('')}
+						</ul>
+					</div>
+					<div class="col-6">
+						<h3 class="text-center">Team Standings</h3>
+						<ul class="list-group">
+							${sortedTeamLeaderboard.map(({ rank, team, points }) =>
+							`<li class="list-group-item d-flex justify-content-between align-items-center">
+							<span>${rank}. ${team}</span>
+							<span>${points} points</span>
+							</li>`).join('')}
+						</ul>
+					</div>
+				</div>
+			</div>
+			<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+		</body>
+		</html>
+		`;
 
 	// Create the file and trigger download
 	const blob = new Blob([htmlContent], { type: 'text/html' });
