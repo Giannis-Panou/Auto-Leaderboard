@@ -317,31 +317,43 @@ function exportLeaderboards() {
 					<div class="col-3">
 					<h3 class="text-end">Driver</h3>
 						<ul class="list-group">
-						${firstHalfPlayers.map(({ rank, username, points }) =>
-							`<li class="list-group-item d-flex justify-content-between align-items-center">
+						${firstHalfPlayers
+							.map(
+								({ rank, username, points }) =>
+									`<li class="list-group-item d-flex justify-content-between align-items-center">
 								<span>${rank}. ${username}</span>
 								<span>${points} points</span>
-							</li>`).join('')}
+							</li>`
+							)
+							.join('')}
 						</ul>
 					</div>
 					<div class="col-3">
 					<h3 class="text-start">Standings</h3>
 						<ul class="list-group">
-							${secondHalfPlayers.map(({ rank, username, points }) =>
-							`<li class="list-group-item d-flex justify-content-between align-items-center">
+							${secondHalfPlayers
+								.map(
+									({ rank, username, points }) =>
+										`<li class="list-group-item d-flex justify-content-between align-items-center">
 								<span>${rank}. ${username}</span>
 								<span>${points} points</span>
-							</li>`).join('')}
+							</li>`
+								)
+								.join('')}
 						</ul>
 					</div>
 					<div class="col-6">
 						<h3 class="text-center">Team Standings</h3>
 						<ul class="list-group">
-							${sortedTeamLeaderboard.map(({ rank, team, points }) =>
-							`<li class="list-group-item d-flex justify-content-between align-items-center">
+							${sortedTeamLeaderboard
+								.map(
+									({ rank, team, points }) =>
+										`<li class="list-group-item d-flex justify-content-between align-items-center">
 							<span>${rank}. ${team}</span>
 							<span>${points} points</span>
-							</li>`).join('')}
+							</li>`
+								)
+								.join('')}
 						</ul>
 					</div>
 				</div>
@@ -385,4 +397,30 @@ window.addEventListener('DOMContentLoaded', () => {
 	document
 		.getElementById('delete-all-btn')
 		.addEventListener('click', clearLocalStorage);
+
+	document
+		.getElementById('load-demo-results-btn')
+		.addEventListener('click', () => {
+			fetch('demoresults/demo_teams.csv')
+				.then((r) => r.text())
+				.then((csvText) => {
+					const demoTeamFile = new File([csvText], 'demo_teams.csv', {
+						type: 'text/csv',
+					});
+					processTeamCsv(demoTeamFile);
+				});
+
+			fetch('demoresults/demo_results.csv')
+				.then((response) => response.text())
+				.then((csvText) => {
+					const demoFile = new File([csvText], 'demoresults.csv', {
+						type: 'text/csv',
+					});
+					processCsvResults(demoFile);
+				})
+				.catch((error) => {
+					console.error('Failed to load demo results:', error);
+					alert('Could not load demo results. Please try again.');
+				});
+		});
 });
