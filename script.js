@@ -374,6 +374,29 @@ function exportLeaderboards() {
 	URL.revokeObjectURL(url);
 }
 
+// Mobile
+var windowSize = window.matchMedia('(max-width: 768px)');
+var navbar = document.getElementById('navbarDiv');
+var exportBtn = document.getElementById('export-results-btn');
+var clearBtn = document.getElementById('clear-points-btn');
+var leaderboardCol = document.getElementById('leaderboardCol');
+
+function mobileView() {
+	if (windowSize.matches) {
+		navbar.classList.add('flex-column');
+		navbar.classList.add('gap-3');
+		exportBtn.classList.remove('me-3');
+		clearBtn.classList.remove('me-3');
+		leaderboardCol.classList.add('flex-column');
+	} else {
+		navbar.classList.remove('flex-column');
+		exportBtn.classList.add('me-3');
+		clearBtn.classList.add('me-3');
+		navbar.classList.remove('gap-3');
+		leaderboardCol.classList.remove('flex-column');
+	}
+}
+
 window.addEventListener('DOMContentLoaded', () => {
 	loadLeaderboard();
 	loadTeamLeaderboard();
@@ -424,3 +447,9 @@ window.addEventListener('DOMContentLoaded', () => {
 				});
 		});
 });
+
+// Run on page load
+document.addEventListener('DOMContentLoaded', mobileView);
+
+// Run on window resize
+window.addEventListener('resize', mobileView);

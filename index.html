@@ -16,55 +16,38 @@
 		<header class="d-flex justify-content-center align-items-center my-3">
 			<h1>Auto Leaderboard</h1>
 		</header>
-		<nav
-			class="navbar navbar-expand-lg bg-body-tertiary justify-content-center my-3"
-		>
-			<div>
-				<div class="collapse navbar-collapse" id="navbarNav">
-					<ul class="navbar-nav gap-3">
-						<div class="d-flex flex-row">
-							<li class="nav-item">
-								<input
-									class="form-control rounded-end-0"
-									type="file"
-									id="csv-file"
-									accept=".json, .csv"
-								/>
-							</li>
-							<li class="nav-item">
-								<button
-									id="load-results-btn"
-									class="btn btn-primary rounded-start-0"
-								>
-									Load Results
-								</button>
-							</li>
-						</div>
-
-						<li class="nav-item">
-							<button id="export-results-btn" class="btn btn-outline-success">
-								Export Results
-							</button>
-						</li>
-
-						<li class="nav-item">
-							<button id="clear-points-btn" class="btn btn-outline-danger">
-								Clear Points
-							</button>
-						</li>
-
-						<li class="nav-item">
-							<button id="delete-all-btn" class="btn btn-danger">
-								Delete Leaderboard
-							</button>
-						</li>
-					</ul>
+		<nav class="navbar my-3 d-flex justify-content-center">
+			<div class="d-flex align-items-center flex-wrap" id="navbarDiv">
+				<div class="d-flex flex-row">
+					<input
+						class="form-control rounded-end-0 w-75"
+						type="file"
+						id="csv-file"
+						accept=".json, .csv"
+					/>
+					<button id="load-results-btn" class="btn btn-primary rounded-start-0">
+						Load File
+					</button>
 				</div>
+
+				<button id="export-results-btn" class="btn btn-outline-success me-3">
+					Export Results
+				</button>
+
+				<button id="clear-points-btn" class="btn btn-outline-danger me-3">
+					Clear Points
+				</button>
+
+				<button id="delete-all-btn" class="btn btn-danger">
+					Delete Leaderboard
+				</button>
 			</div>
 		</nav>
+
 		<div
 			class="navbar navbar-expand-lg bg-body-tertiary justify-content-center my-3"
-			id="demo-navbar">
+			id="demo-navbar"
+		>
 			<ul class="navbar-nav gap-3">
 				<li class="nav-item">
 					<button id="load-demo-results-btn" class="btn btn-lg btn-success">
@@ -74,9 +57,9 @@
 			</ul>
 		</div>
 
-		<div class="d-flex">
-			<div class="results-container list-group col-md-6"></div>
-			<div class="team-results-container list-group col-md-6"></div>
+		<div class="d-flex" id="leaderboardCol">
+			<div class="results-container list-group col-md-6 my-3"></div>
+			<div class="team-results-container list-group col-md-6 my-3"></div>
 		</div>
 
 		<script src="script.js"></script>
