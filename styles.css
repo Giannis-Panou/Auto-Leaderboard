@@ -1,4 +1,21 @@
 body {
 	overflow-x: hidden;
 	padding: 5px;
+	background-color: #1d2033;
+	color: #ffffff;
+	font-size: large;
+}
+
+.results-container {
+	margin-left: 10px;
+}
+
+.team-results-container {
+	margin-right: 10px;
+}
+
+.leaderboard-entry {
+	background-color: #1d2033;
+	color: #ffffff;
+	border: none;
 }
