@@ -23,7 +23,16 @@ header {
 	height: 100px;
 }
 
+#points-system-select {
+	background-color: #11121d;
+	color: #ffffff;
+	border: 1px solid #ffffff;
+	transform: skew(-20deg);
+	border-radius: 0px;
+}
+
 .form-control {
+	background-color: #11121d;
 	border: 1px solid #ff8000;
 }
 
@@ -44,13 +53,14 @@ header {
 }
 
 #clear-points-btn {
+	background-color: #11121d;
 	border: 1px solid #d40000;
 	color: #ffffff;
+	margin-right: -1px;
 }
 
 #clear-points-btn:hover {
 	background-color: #d40000;
-	border: 1px solid #d40000;
 }
 
 #delete-all-btn {
@@ -65,14 +75,15 @@ header {
 }
 
 #load-demo-results-btn {
-	background-color: #ff8000;
+	background-color: #11121d;
 	border: 1px solid #ff8000;
-	color: #11121d;
+	color: #ffffff;
+	margin-right: -1px;
 }
 
 #load-demo-results-btn:hover {
-	background-color: #da6d00;
-	border: 1px solid #da6d00;
+	background-color: #ff8000;
+	border: 1px solid #ff8000;
 }
 
 #load-demo-results-btn-2 {
@@ -99,7 +110,6 @@ header {
 }
 
 .results-container {
-	margin-right: 10px;
 	max-height: 100vh;
 	overflow-y: auto;
 	scrollbar-color: #ffffff #11121d;
@@ -108,7 +118,6 @@ header {
 }
 
 .team-results-container {
-	margin-left: 10px;
 	max-height: 100vh;
 	overflow-y: auto;
 	scrollbar-color: #ffffff #1d2033;
@@ -126,6 +135,7 @@ header {
 	border-radius: 5px;
 	margin-top: 2.5px;
 	margin-bottom: 2.5px;
+	margin-left: 5px;
 	margin-right: 5px;
 }
 
@@ -134,4 +144,23 @@ header {
 	margin-top: 2.5px;
 	margin-bottom: 2.5px;
 	margin-left: 5px;
+	margin-right: 5px;
+}
+
+@media screen and (max-width: 768px) {
+	.results-container {
+		max-height: 50vh;
+	}
+
+	.team-results-container {
+		max-height: 50vh;
+	}
+
+	#leaderboardCol {
+		width: 90%;
+	}
+
+	#load-results-btn {
+		width: 50%;
+	}
 }

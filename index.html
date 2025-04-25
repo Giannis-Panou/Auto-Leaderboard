@@ -13,23 +13,36 @@
 		<link rel="stylesheet" href="styles.css" />
 	</head>
 	<body>
-		<header class="d-flex justify-content-center align-items-center mb-3">
+		<header class="d-flex justify-content-center align-items-center">
 			<h1>Auto Leaderboard</h1>
 		</header>
-		<nav class="navbar mx-5 d-flex justify-content-around">
-			<div class="d-flex align-items-center flex-wrap col-5" id="navbarDiv">
-				<div class="d-flex flex-row mx-4">
+		<nav class="navbar mx-5 d-flex justify-content-around mb-3">
+			<div class="navbar navbar-expand">
+				<select id="points-system-select" class="form-select">
+					<option value="WRC" class="custom-option">WRC</option>
+					<option value="Powerstage" class="custom-option">
+						WRC Powerstage
+					</option>
+					<option value="Rallycross" class="custom-option">Rallycross</option>
+					<option value="F1" class="custom-option">F1</option>
+				</select>
+			</div>
+
+			<div class="navbar navbar-expand" id="navbarDiv">
+				<div class="d-flex flex-row align-items-center">
 					<input
-						class="form-control rounded-end-0 w-75 my-2 bg-dark text-light nav-button"
+						class="form-control rounded-end-0 w-75 text-light nav-button"
 						type="file"
 						id="csv-file"
 						accept=".json, .csv"
 					/>
-					<button id="load-results-btn" class="btn my-2 nav-button">
+					<button id="load-results-btn" class="btn nav-button">
 						Load File
 					</button>
 				</div>
+			</div>
 
+			<div class="navbar navbar-expand">
 				<button id="clear-points-btn" class="btn nav-button">
 					Clear Points
 				</button>
@@ -38,25 +51,16 @@
 					Delete Leaderboards
 				</button>
 			</div>
-			<div
-				class="navbar navbar-expand-lg justify-content-center col-5 my-3"
-				id="demo-navbar"
-			>
-				<ul class="navbar-nav">
+			<div class="navbar navbar-expand" id="demo-navbar">
+				<ul class="navbar-nav" id="demo-navbar-list">
 					<li class="nav-item">
-						<button
-							id="load-demo-results-btn"
-							class="btn nav-button"
-						>
-							Load Demo Results 1
+						<button id="load-demo-results-btn" class="btn nav-button">
+							Demo Results 1
 						</button>
 					</li>
 					<li class="nav-item">
-						<button
-							id="load-demo-results-btn-2"
-							class="btn nav-button"
-						>
-							Load Demo Results 2
+						<button id="load-demo-results-btn-2" class="btn nav-button">
+							Demo Results 2
 						</button>
 					</li>
 				</ul>

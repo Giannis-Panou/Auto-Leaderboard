@@ -1,5 +1,10 @@
-const pointsSystem = [30, 24, 21, 19, 17, 15, 13, 11, 9, 7, 5, 4, 3, 2, 1];
-const powerStagePoints = [5, 4, 3, 2, 1];
+const pointsSystem = {
+	WRC: [25, 17, 15, 12, 10, 8, 6, 4, 2, 1],
+	Powerstage: [5, 4, 3, 2, 1],
+	Rallycross: [20, 16, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1],
+	F1: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1],
+};
+let selectedPointsSystem = 'WRC';
 let leaderboard = {};
 let teamLeaderboard = {};
 
@@ -23,7 +28,7 @@ function processCsvResults(file) {
 				};
 			});
 
-			updateLeaderboard(combinedResults, file);
+			updateLeaderboard(combinedResults);
 		} catch (error) {
 			console.error('Error processing CSV:', error);
 			alert('Error processing CSV file. Please check the file format.');
@@ -104,10 +109,8 @@ function csvToTeamJson(csv) {
 }
 
 // Update leaderboard
-function updateLeaderboard(playersResults, file) {
-	const pointsArray = file.name.endsWith('_powerstage.csv')
-		? powerStagePoints
-		: pointsSystem;
+function updateLeaderboard(playersResults) {
+	const pointsArray = pointsSystem[selectedPointsSystem] || pointsSystem.WRC;
 
 	const teamScores = {};
 
@@ -117,10 +120,6 @@ function updateLeaderboard(playersResults, file) {
 
 		leaderboard[username] = (leaderboard[username] || 0) + points;
 
-		// if ((username = 'RG-Karafoulidis')) {
-		// 	points = 0;
-		// }
-
 		if (team) {
 			if (!teamScores[team]) teamScores[team] = [];
 			teamScores[team].push(points);
@@ -129,7 +128,6 @@ function updateLeaderboard(playersResults, file) {
 
 	Object.keys(teamScores).forEach((team) => {
 		const topScores = teamScores[team].sort((a, b) => b - a).slice(0, 2);
-
 		const teamPoints = topScores.reduce((acc, score) => acc + score, 0);
 		teamLeaderboard[team] = (teamLeaderboard[team] || 0) + teamPoints;
 	});
@@ -263,25 +261,33 @@ function handleLoadResults() {
 
 // Mobile
 var windowSize = window.matchMedia('(max-width: 768px)');
+var pointsSystemSelect = document.getElementById('points-system-select');
+var csvFileInput = document.getElementById('csv-file');
 var navbar = document.getElementById('navbarDiv');
+var demoNavbar = document.getElementById('demo-navbar-list');
 var clearBtn = document.getElementById('clear-points-btn');
 var leaderboardCol = document.getElementById('leaderboardCol');
 
 function mobileView() {
 	if (windowSize.matches) {
-		navbar.classList.add('flex-column');
-		navbar.classList.add('gap-3');
 		leaderboardCol.classList.add('flex-column');
 	} else {
-		navbar.classList.remove('flex-column');
-		navbar.classList.remove('gap-3');
 		leaderboardCol.classList.remove('flex-column');
 	}
 }
 
-window.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', () => {
 	loadLeaderboard();
 	loadTeamLeaderboard();
+
+	const select = document.getElementById('points-system-select');
+	if (select) {
+		selectedPointsSystem = select.value;
+
+		select.addEventListener('change', (e) => {
+			selectedPointsSystem = e.target.value;
+		});
+	}
 
 	document
 		.getElementById('load-results-btn')
