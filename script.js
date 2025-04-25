@@ -287,17 +287,18 @@ window.addEventListener('DOMContentLoaded', () => {
 		.getElementById('load-results-btn')
 		.addEventListener('click', handleLoadResults);
 
-	document
-		.getElementById('clear-points-btn')
-		.addEventListener('click', clearPoints);
+	document.getElementById('clear-points-btn').addEventListener('click', () => {
+		if (confirm('Are you sure you want to clear all points?')) {
+			clearPoints();
+			clearTeamPoints();
+		}
+	});
 
-	document
-		.getElementById('clear-points-btn')
-		.addEventListener('click', clearTeamPoints);
-
-	document
-		.getElementById('delete-all-btn')
-		.addEventListener('click', clearLocalStorage);
+	document.getElementById('delete-all-btn').addEventListener('click', () => {
+		if (confirm('Are you sure you want to delete all data?')) {
+			clearLocalStorage();
+		}
+	});
 
 	document
 		.getElementById('load-demo-results-btn')

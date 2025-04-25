@@ -5,13 +5,13 @@
 
 body {
 	overflow-x: hidden;
-	background-color: #1d2033;
+	background-color: #11121d;
 	color: #ffffff;
 	font-size: large;
 }
 
 h1 {
-	text-shadow: #1d2033 0px 0px 5px;
+	text-shadow: #11121d 0px 0px 5px;
 }
 
 header {
@@ -19,18 +19,71 @@ header {
 	background-image: url('/images/checkered-wallpaper.jpg');
 	background-size: cover;
 	background-position: center;
-	background-color: #1d2033;
+	background-color: #11121d;
 	height: 100px;
 }
 
 .form-control {
-	background-color: #1d2033;
-	border: 1px solid #1d2033;
+	border: 1px solid #ff8000;
 }
 
 .nav-button {
 	transform: skew(-20deg);
 	border-radius: 0px;
+}
+
+#load-results-btn {
+	background-color: #ff8000;
+	border: 1px solid #ff8000;
+	color: #11121d;
+}
+
+#load-results-btn:hover {
+	background-color: #da6d00;
+	border: 1px solid #da6d00;
+}
+
+#clear-points-btn {
+	border: 1px solid #d40000;
+	color: #ffffff;
+}
+
+#clear-points-btn:hover {
+	background-color: #d40000;
+	border: 1px solid #d40000;
+}
+
+#delete-all-btn {
+	background-color: #d40000;
+	border: 1px solid #d40000;
+	color: #ffffff;
+}
+
+#delete-all-btn:hover {
+	background-color: #b30000;
+	border: 1px solid #b30000;
+}
+
+#load-demo-results-btn {
+	background-color: #ff8000;
+	border: 1px solid #ff8000;
+	color: #11121d;
+}
+
+#load-demo-results-btn:hover {
+	background-color: #da6d00;
+	border: 1px solid #da6d00;
+}
+
+#load-demo-results-btn-2 {
+	background-color: #ff8000;
+	border: 1px solid #ff8000;
+	color: #11121d;
+}
+
+#load-demo-results-btn-2:hover {
+	background-color: #da6d00;
+	border: 1px solid #da6d00;
 }
 
 #leaderboardDiv {
@@ -49,7 +102,7 @@ header {
 	margin-right: 10px;
 	max-height: 100vh;
 	overflow-y: auto;
-	scrollbar-color: #ffffff #1d2033;
+	scrollbar-color: #ffffff #11121d;
 	scrollbar-width: thin;
 	padding-bottom: 10px;
 }
