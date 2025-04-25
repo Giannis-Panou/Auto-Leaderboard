@@ -152,14 +152,14 @@ function displayLeaderboard() {
 		const leaderboardHtml = sortedLeaderboard
 			.map(
 				([username, points], index) =>
-					`<div class="leaderboard-entry list-group-item d-flex justify-content-between">
+					`<div class="leaderboard-entry list-group-item d-flex justify-content-between" id="player">
 						<span>${index + 1}. ${username}</span>  
 						<span>${points} points</span>
 					</div>`
 			)
 			.join('');
 
-		resultsContainer.innerHTML = `<h2>Leaderboard</h2>${leaderboardHtml}`;
+		resultsContainer.innerHTML = `${leaderboardHtml}`;
 	}
 }
 
@@ -176,14 +176,14 @@ function displayTeamLeaderboard() {
 		const leaderboardHtml = sortedLeaderboard
 			.map(
 				([team, points], index) =>
-					`<div class="leaderboard-entry list-group-item d-flex justify-content-between">
+					`<div class="leaderboard-entry list-group-item d-flex justify-content-between" id="team">
 						<span>${index + 1}. ${team}: </span>
 						<span>${points} points </span>
 					</div>`
 			)
 			.join('');
 
-		resultsContainer.innerHTML = `<h2>Team Leaderboard</h2>${leaderboardHtml}`;
+		resultsContainer.innerHTML = `${leaderboardHtml}`;
 	}
 }
 
@@ -239,18 +239,6 @@ function clearLocalStorage() {
 	displayTeamLeaderboard();
 }
 
-// // Export leaderboard
-// function exportResults() {
-// 	const dataStr = JSON.stringify(leaderboard, null, 2);
-// 	const blob = new Blob([dataStr], { type: 'application/json' });
-// 	const url = URL.createObjectURL(blob);
-// 	const a = document.createElement('a');
-// 	a.href = url;
-// 	a.download = 'leaderboard.json';
-// 	a.click(); // Trigger download
-// 	URL.revokeObjectURL(url);
-// }
-
 // Load Results
 function handleLoadResults() {
 	const csvFileInput = document.getElementById('csv-file');
@@ -273,111 +261,9 @@ function handleLoadResults() {
 	}
 }
 
-// Export Leaderboards
-function exportLeaderboards() {
-	const leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || {};
-	const teamLeaderboard =
-		JSON.parse(localStorage.getItem('teamLeaderboard')) || {};
-
-	const sortedPlayerLeaderboard = Object.entries(leaderboard)
-		.sort((a, b) => b[1] - a[1])
-		.map(([username, points], index) => ({
-			rank: index + 1,
-			username,
-			points,
-		}));
-
-	const sortedTeamLeaderboard = Object.entries(teamLeaderboard)
-		.sort((a, b) => b[1] - a[1])
-		.map(([team, points], index) => ({ rank: index + 1, team, points }));
-
-	const firstHalfPlayers = sortedPlayerLeaderboard.slice(0, 32);
-	const secondHalfPlayers = sortedPlayerLeaderboard.slice(32);
-
-	// Create the static HTML structure
-	const htmlContent = `
-		<!DOCTYPE html>
-		<html lang="en">
-		<head>
-			<meta charset="UTF-8">
-			<meta name="viewport" content="width=device-width, initial-scale=1.0">
-			<title>Leaderboards</title>
-			<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-			<style>
-				.leaderboard-section {
-					display: flex;
-					justify-content: space-between;
-					gap: 20px;
-				}
-			</style>
-		</head>
-		<body>
-			<div class="container-fluid border">
-				<div class="row">
-					<div class="col-3">
-					<h3 class="text-end">Driver</h3>
-						<ul class="list-group">
-						${firstHalfPlayers
-							.map(
-								({ rank, username, points }) =>
-									`<li class="list-group-item d-flex justify-content-between align-items-center">
-								<span>${rank}. ${username}</span>
-								<span>${points} points</span>
-							</li>`
-							)
-							.join('')}
-						</ul>
-					</div>
-					<div class="col-3">
-					<h3 class="text-start">Standings</h3>
-						<ul class="list-group">
-							${secondHalfPlayers
-								.map(
-									({ rank, username, points }) =>
-										`<li class="list-group-item d-flex justify-content-between align-items-center">
-								<span>${rank}. ${username}</span>
-								<span>${points} points</span>
-							</li>`
-								)
-								.join('')}
-						</ul>
-					</div>
-					<div class="col-6">
-						<h3 class="text-center">Team Standings</h3>
-						<ul class="list-group">
-							${sortedTeamLeaderboard
-								.map(
-									({ rank, team, points }) =>
-										`<li class="list-group-item d-flex justify-content-between align-items-center">
-							<span>${rank}. ${team}</span>
-							<span>${points} points</span>
-							</li>`
-								)
-								.join('')}
-						</ul>
-					</div>
-				</div>
-			</div>
-			<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-		</body>
-		</html>
-		`;
-
-	// Create the file and trigger download
-	const blob = new Blob([htmlContent], { type: 'text/html' });
-	const url = URL.createObjectURL(blob);
-	// window.open(url, '_blank');
-	const a = document.createElement('a');
-	a.href = url;
-	// a.download = 'leaderboards.html';
-	a.click();
-	URL.revokeObjectURL(url);
-}
-
 // Mobile
 var windowSize = window.matchMedia('(max-width: 768px)');
 var navbar = document.getElementById('navbarDiv');
-var exportBtn = document.getElementById('export-results-btn');
 var clearBtn = document.getElementById('clear-points-btn');
 var leaderboardCol = document.getElementById('leaderboardCol');
 
@@ -385,13 +271,9 @@ function mobileView() {
 	if (windowSize.matches) {
 		navbar.classList.add('flex-column');
 		navbar.classList.add('gap-3');
-		exportBtn.classList.remove('me-3');
-		clearBtn.classList.remove('me-3');
 		leaderboardCol.classList.add('flex-column');
 	} else {
 		navbar.classList.remove('flex-column');
-		exportBtn.classList.add('me-3');
-		clearBtn.classList.add('me-3');
 		navbar.classList.remove('gap-3');
 		leaderboardCol.classList.remove('flex-column');
 	}
@@ -414,10 +296,6 @@ window.addEventListener('DOMContentLoaded', () => {
 		.addEventListener('click', clearTeamPoints);
 
 	document
-		.getElementById('export-results-btn')
-		.addEventListener('click', exportLeaderboards);
-
-	document
 		.getElementById('delete-all-btn')
 		.addEventListener('click', clearLocalStorage);
 
@@ -434,6 +312,32 @@ window.addEventListener('DOMContentLoaded', () => {
 				});
 
 			fetch('demoresults/demo_results.csv')
+				.then((response) => response.text())
+				.then((csvText) => {
+					const demoFile = new File([csvText], 'demoresults.csv', {
+						type: 'text/csv',
+					});
+					processCsvResults(demoFile);
+				})
+				.catch((error) => {
+					console.error('Failed to load demo results:', error);
+					alert('Could not load demo results. Please try again.');
+				});
+		});
+
+	document
+		.getElementById('load-demo-results-btn-2')
+		.addEventListener('click', () => {
+			fetch('demoresults/demo_teams.csv')
+				.then((r) => r.text())
+				.then((csvText) => {
+					const demoTeamFile = new File([csvText], 'demo_teams.csv', {
+						type: 'text/csv',
+					});
+					processTeamCsv(demoTeamFile);
+				});
+
+			fetch('demoresults/demo_results_2.csv')
 				.then((response) => response.text())
 				.then((csvText) => {
 					const demoFile = new File([csvText], 'demoresults.csv', {

@@ -1,21 +1,84 @@
+@font-face {
+	font-family: 'racing-font';
+	src: url('/fonts/rush-driver.italic.otf');
+}
+
 body {
 	overflow-x: hidden;
-	padding: 5px;
 	background-color: #1d2033;
 	color: #ffffff;
 	font-size: large;
 }
 
+h1 {
+	text-shadow: #1d2033 0px 0px 5px;
+}
+
+header {
+	font-family: 'racing-font';
+	background-image: url('/images/checkered-wallpaper.jpg');
+	background-size: cover;
+	background-position: center;
+	background-color: #1d2033;
+	height: 100px;
+}
+
+.form-control {
+	background-color: #1d2033;
+	border: 1px solid #1d2033;
+}
+
+.nav-button {
+	transform: skew(-20deg);
+	border-radius: 0px;
+}
+
+#leaderboardDiv {
+	width: 100%;
+}
+
+#leaderboardCol {
+	width: 95%;
+}
+
+#results {
+	width: 100%;
+}
+
 .results-container {
-	margin-left: 10px;
+	margin-right: 10px;
+	max-height: 100vh;
+	overflow-y: auto;
+	scrollbar-color: #ffffff #1d2033;
+	scrollbar-width: thin;
+	padding-bottom: 10px;
 }
 
 .team-results-container {
-	margin-right: 10px;
+	margin-left: 10px;
+	max-height: 100vh;
+	overflow-y: auto;
+	scrollbar-color: #ffffff #1d2033;
+	scrollbar-width: thin;
+	padding-bottom: 10px;
 }
 
 .leaderboard-entry {
 	background-color: #1d2033;
 	color: #ffffff;
 	border: none;
+}
+
+#player {
+	border-radius: 5px;
+	margin-top: 2.5px;
+	margin-bottom: 2.5px;
+	margin-right: 5px;
+}
+
+#team {
+	border-radius: 5px;
+	margin-top: 2.5px;
+	margin-bottom: 2.5px;
+	margin-left: 5px;
 }
