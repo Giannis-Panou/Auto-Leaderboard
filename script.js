@@ -15,8 +15,8 @@ function processCsvResults(file) {
 	reader.onload = function (event) {
 		try {
 			const csvResults = event.target.result;
-			const jsonResults = csvToJson(csvResults);
 			const teamsFromStorage = JSON.parse(localStorage.getItem('teams')) || [];
+			const jsonResults = csvToJson(csvResults, teamsFromStorage);
 
 			const combinedResults = jsonResults.map((player) => {
 				const teamEntry = teamsFromStorage.find(
@@ -56,34 +56,31 @@ function processTeamCsv(file) {
 }
 
 // CSV to JSON
-function csvToJson(csv) {
-	const lines = csv.split('\n');
-	const teamsFromStorage = JSON.parse(localStorage.getItem('teams'));
+function csvToJson(csv, teamsFromStorage = []) {
+	const lines = csv.split('\n').filter((line) => line.trim() !== '');
+	// const teamsFromStorage = JSON.parse(localStorage.getItem('teams')) || [];
 
-	const results = lines
-		.slice(1)
-		.map((line) => {
-			const values = line.split(',');
+	const results = lines.slice(1).flatMap((line) => {
+		const values = line.split(',');
 
-			if (values.length >= 2) {
-				const username = values[1].trim();
-				const place = parseInt(values[0].trim(), 10);
+		if (values.length >= 2) {
+			const username = values[1].trim();
+			const place = parseInt(values[0].trim(), 10);
 
-				const teamEntry = teamsFromStorage.find(
-					(team) => team.username === username
-				);
-				const teamName = teamEntry ? teamEntry.team : null;
+			const teamEntry = teamsFromStorage.find(
+				(team) => team.username === username
+			);
+			const teamName = teamEntry ? teamEntry.team : null;
 
-				return {
-					username,
-					place,
-					team: teamName,
-				};
-			}
+			return {
+				username,
+				place,
+				team: teamName,
+			};
+		}
 
-			return null;
-		})
-		.filter((result) => result !== null);
+		return [];
+	});
 
 	return results;
 }
