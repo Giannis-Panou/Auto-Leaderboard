@@ -36,6 +36,12 @@ header {
 	border: 1px solid #ff8000;
 }
 
+.form-control:focus {
+	background-color: #11121d;
+	border: 1px solid #ff8000;
+	box-shadow: none;
+}
+
 .nav-button {
 	transform: skew(-20deg);
 	border-radius: 0px;
