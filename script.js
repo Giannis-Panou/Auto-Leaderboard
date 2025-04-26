@@ -87,21 +87,19 @@ function csvToJson(csv, teamsFromStorage = []) {
 
 // CSV to Team JSON
 function csvToTeamJson(csv) {
-	const lines = csv.split('\n');
+	const lines = csv.split('\n').filter((line) => line.trim() !== '');
 
-	const teams = lines
-		.slice(1)
-		.map((line) => {
-			const values = line.split(',');
-			if (values.length >= 2) {
-				return {
-					username: values[1].trim(),
-					team: values[2].trim(),
-				};
-			}
-			return null;
-		})
-		.filter((result) => result !== null);
+	const teams = lines.slice(1).flatMap((line) => {
+		const values = line.split(',');
+		if (values.length >= 2) {
+			return {
+				username: values[1].trim(),
+				team: values[2].trim(),
+			};
+		}
+		return [];
+	});
+
 	return teams;
 }
 
