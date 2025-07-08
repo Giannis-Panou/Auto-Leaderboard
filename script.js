@@ -241,6 +241,7 @@ function handleLoadResults() {
 		if (file.name.endsWith('.csv')) {
 			if (file.name.includes('_teams.csv')) {
 				processTeamCsv(file);
+				alert('Teams loaded successfully.');
 			} else {
 				processCsvResults(file);
 			}
