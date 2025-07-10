@@ -1,61 +1,57 @@
 @font-face {
 	font-family: 'racing-font';
-	src: url('/fonts/rush-driver.italic.otf');
+	src: url('/fonts/sprintura-demo/Sprintura\ Demo.otf');
 }
 
 body {
 	overflow-x: hidden;
 	background-color: #11121d;
 	color: #ffffff;
-	font-size: large;
-}
-
-h1 {
+	font-family: 'racing-font';
 	text-shadow: #11121d 0px 0px 5px;
 }
 
 header {
 	font-family: 'racing-font';
-	background-image: url('/images/checkered-wallpaper.jpg');
-	background-size: cover;
-	background-position: center;
-	background-color: #11121d;
-	height: 100px;
+	margin-top: 1%;
 }
 
 #points-system-select {
 	background-color: #11121d;
 	color: #ffffff;
 	border: 1px solid #ffffff;
-	transform: skew(-20deg);
-	border-radius: 0px;
+	border-radius: 0;
+	border-top-left-radius: 10px;
+	border-bottom-right-radius: 10px;
 }
 
 .form-control {
 	background-color: #11121d;
-	border: 1px solid #ff8000;
+	border: 1px solid #ffffff;
 }
 
 .form-control:focus {
 	background-color: #11121d;
-	border: 1px solid #ff8000;
+	border: 1px solid #ffffff;
 	box-shadow: none;
 }
 
 .nav-button {
-	transform: skew(-20deg);
-	border-radius: 0px;
+	border-radius: 0;
+	border-top-left-radius: 10px;
+	border-bottom-right-radius: 10px;
 }
 
 #load-results-btn {
-	background-color: #ff8000;
-	border: 1px solid #ff8000;
+	background-color: #ffffff;
+	border: 1px solid #ffffff;
 	color: #11121d;
+	border-top-left-radius: 0px;
 }
 
 #load-results-btn:hover {
-	background-color: #da6d00;
-	border: 1px solid #da6d00;
+	background-color: #ffffffef;
+	border: 1px solid #ffffffef;
 }
 
 #clear-points-btn {
@@ -82,25 +78,26 @@ header {
 
 #load-demo-results-btn {
 	background-color: #11121d;
-	border: 1px solid #ff8000;
+	border: 1px solid #d0ff00;
 	color: #ffffff;
 	margin-right: -1px;
 }
 
 #load-demo-results-btn:hover {
-	background-color: #ff8000;
-	border: 1px solid #ff8000;
+	background-color: #d0ff00;
+	border: 1px solid #d0ff00;
+	color: #11121d;
 }
 
 #load-demo-results-btn-2 {
-	background-color: #ff8000;
-	border: 1px solid #ff8000;
+	background-color: #d0ff00;
+	border: 1px solid #d0ff00;
 	color: #11121d;
 }
 
 #load-demo-results-btn-2:hover {
-	background-color: #da6d00;
-	border: 1px solid #da6d00;
+	background-color: #d0ff00e3;
+	border: 1px solid #d0ff00e3;
 }
 
 #leaderboardDiv {
@@ -108,7 +105,7 @@ header {
 }
 
 #leaderboardCol {
-	width: 95%;
+	width: 97.5%;
 }
 
 #results {
@@ -118,9 +115,11 @@ header {
 .results-container {
 	max-height: 100vh;
 	overflow-y: auto;
-	scrollbar-color: #ffffff #11121d;
+	scrollbar-color: #ffffff #111111;
 	scrollbar-width: thin;
 	padding-bottom: 10px;
+	border-top-left-radius: 10px;
+	border-top-right-radius: 0;
 }
 
 .team-results-container {
@@ -129,31 +128,77 @@ header {
 	scrollbar-color: #ffffff #1d2033;
 	scrollbar-width: thin;
 	padding-bottom: 10px;
+	border-top-left-radius: 10px;
+	border-top-right-radius: 0;
 }
 
 .leaderboard-entry {
+	display: flex;
+	align-items: center;
 	background-color: #1d2033;
 	color: #ffffff;
-	border: none;
+	font-family: 'racing-font';
+	font-size: medium;
+	border: 0;
+	margin: 5px;
+	position: relative;
+	padding-left: 50px;
+	border-top-left-radius: 10px;
+	border-bottom-right-radius: 10px;
 }
 
-#player {
-	border-radius: 5px;
-	margin-top: 2.5px;
-	margin-bottom: 2.5px;
-	margin-left: 5px;
-	margin-right: 5px;
+.col {
+	width: 100%;
+	padding: 10px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	flex: 1;
 }
 
-#team {
-	border-radius: 5px;
-	margin-top: 2.5px;
-	margin-bottom: 2.5px;
-	margin-left: 5px;
-	margin-right: 5px;
+.number {
+	flex: 0 0 40px;
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 40px;
+	height: 100%;
+	background: white;
+	color: black;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	font-family: 'racing-font';
+	border-top-left-radius: 10px;
+	border-bottom-left-radius: 0;
+	text-shadow: none;
+}
+
+.players {
+	flex-grow: 3;
+	flex-shrink: 1;
+	flex-basis: 0;
+	text-overflow: clip;
+	padding-left: 5px;
+	padding-right: 5px;
+}
+
+.teams {
+	flex-grow: 4;
+	flex-shrink: 1;
+	flex-basis: 0;
+	text-overflow: clip;
+	padding-left: 5px;
+	padding-right: 5px;
 }
 
 @media screen and (max-width: 768px) {
+	.navbar {
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+	}
+
 	.results-container {
 		max-height: 50vh;
 	}
@@ -163,7 +208,15 @@ header {
 	}
 
 	#leaderboardCol {
-		width: 90%;
+		width: 100%;
+	}
+
+	.leaderboard-entry {
+		font-size: small;
+	}
+
+	.points {
+		width: 10%;
 	}
 
 	#load-results-btn {

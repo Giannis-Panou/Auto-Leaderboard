@@ -134,6 +134,8 @@ function updateLeaderboard(playersResults) {
 
 // Display leaderboard
 function displayLeaderboard() {
+	const teamsFromStorage = JSON.parse(localStorage.getItem('teams')) || [];
+
 	const sortedLeaderboard = Object.entries(leaderboard).sort(
 		(a, b) => b[1] - a[1]
 	);
@@ -143,13 +145,28 @@ function displayLeaderboard() {
 
 	if (sortedLeaderboard.length > 0) {
 		const leaderboardHtml = sortedLeaderboard
-			.map(
-				([username, points], index) =>
-					`<div class="leaderboard-entry list-group-item d-flex justify-content-between" id="player">
-						<span>${index + 1}. ${username}</span>  
-						<span>${points} points</span>
-					</div>`
-			)
+			.map(([username, points], index) => {
+				const teamEntry = teamsFromStorage.find(
+					(teamObj) => teamObj.username === username
+				);
+
+				const team = teamEntry ? teamEntry.team : 'Unknown';
+
+				return `<div class="leaderboard-entry list-group-item d-flex justify-content-between">
+							<div class="number">
+								<span id="number">${index + 1}</span>
+							</div>
+							<div class="players">
+								<span>${username}</span>
+							</div>
+							<div class="justify-content-center teams">
+								<span>${team}</span>
+							</div>
+							<div class="d-flex justify-content-end points">
+								<span>${points}</span>
+							</div>
+					</div>`;
+			})
 			.join('');
 
 		resultsContainer.innerHTML = `${leaderboardHtml}`;
@@ -169,9 +186,16 @@ function displayTeamLeaderboard() {
 		const leaderboardHtml = sortedLeaderboard
 			.map(
 				([team, points], index) =>
-					`<div class="leaderboard-entry list-group-item d-flex justify-content-between" id="team">
-						<span>${index + 1}. ${team}: </span>
-						<span>${points} points </span>
+					`<div class="leaderboard-entry list-group-item d-flex justify-content-between">
+						<div class="number">
+							<span id="number">${index + 1}</span>
+						</div>
+						<div class="d-flex flex-grow-1 flex-row players">
+							<span>${team}</span>
+						</div>
+						<div class="d-flex flex-grow-1 justify-content-end points">
+							<span>${points}</span>
+						</div>
 					</div>`
 			)
 			.join('');
