@@ -20,9 +20,25 @@
 			<h1>Auto Leaderboard</h1>
 		</header>
 		<nav
-			class="navbar mx-4 d-flex flex-column justify-content-around mb-3 gap-4"
+			class="navbar d-flex flex-column justify-content-center align-items-center mb-3 gap-4"
 		>
-			<div class="navbar d-flex flex-column align-items-center gap-4">
+			<div class="d-flex flex-column align-items-center justify-content-center">
+				<p>Upload CSV file</p>
+				<div class="d-flex flex-row">
+					<input
+						class="form-control rounded-end-0 text-light nav-button"
+						type="file"
+						id="csv-file"
+						accept=".json, .csv"
+					/>
+					<button id="load-results-btn" class="btn nav-button w-auto">
+						Submit
+					</button>
+				</div>
+			</div>
+			<div
+				class="navbar d-flex flex-column align-items-center justify-content-center"
+			>
 				<div class="d-flex flex-row justify-content-around gap-5">
 					<div class="d-flex flex-column align-items-center">
 						<p>Points System</p>
@@ -38,27 +54,12 @@
 						</select>
 					</div>
 					<div class="d-flex flex-column align-items-center">
-						<p>Point Scorers per Team</p>
+						<p>Team Point Scorers</p>
 						<select id="points-scorers-select" class="form-select select">
 							<option value="Two" class="custom-option">2 Drivers</option>
 							<option value="Three" class="custom-option">3 Drivers</option>
 							<option value="Four" class="custom-option">4 Drivers</option>
 						</select>
-					</div>
-				</div>
-
-				<div class="d-flex flex-column align-items-center">
-					<p>Upload CSV file</p>
-					<div class="d-flex flex-row">
-						<input
-							class="form-control rounded-end-0 w-75 text-light nav-button"
-							type="file"
-							id="csv-file"
-							accept=".json, .csv"
-						/>
-						<button id="load-results-btn" class="btn nav-button w-auto">
-							Submit
-						</button>
 					</div>
 				</div>
 			</div>

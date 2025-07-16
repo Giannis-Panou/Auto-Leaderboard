@@ -166,8 +166,8 @@ function displayLeaderboard() {
 				const team = teamEntry ? teamEntry.team : 'Unknown';
 
 				return `<div class="leaderboard-entry list-group-item d-flex justify-content-between">
-							<div class="number">
-								<span id="number">${index + 1}</span>
+							<div class="numberDiv">
+								<span class="number">${index + 1}</span>
 							</div>
 							<div class="players">
 								<span>${username}</span>
@@ -200,8 +200,8 @@ function displayTeamLeaderboard() {
 			.map(
 				([team, points], index) =>
 					`<div class="leaderboard-entry list-group-item d-flex justify-content-between">
-						<div class="number">
-							<span id="number">${index + 1}</span>
+						<div class="numberDiv">
+							<span class="number">${index + 1}</span>
 						</div>
 						<div class="d-flex flex-grow-1 flex-row players">
 							<span>${team}</span>
@@ -214,6 +214,7 @@ function displayTeamLeaderboard() {
 			.join('');
 
 		resultsContainer.innerHTML = `${leaderboardHtml}`;
+		podiumStyling();
 	}
 }
 
@@ -290,6 +291,28 @@ function handleLoadResults() {
 	} else {
 		alert('Please select a file.');
 	}
+}
+
+// Podium Styling
+function podiumStyling() {
+	const podiumNum = document.querySelectorAll('.number');
+
+	podiumNum.forEach((span) => {
+		const number = parseInt(span.innerHTML, 10);
+		const div = span.closest('.numberDiv');
+
+		if (number == 1) {
+			div.style.backgroundColor = '#FFD700';
+		}
+
+		if (number == 2) {
+			div.style.backgroundColor = '#C0C0C0';
+		}
+
+		if (number == 3) {
+			div.style.backgroundColor = '#CD7F32';
+		}
+	});
 }
 
 // Mobile
