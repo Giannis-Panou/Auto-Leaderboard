@@ -316,19 +316,17 @@ function podiumStyling() {
 }
 
 // Mobile
-var windowSize = window.matchMedia('(max-width: 768px)');
-var pointsSystemSelect = document.getElementById('points-system-select');
-var csvFileInput = document.getElementById('csv-file');
-var navbar = document.getElementById('navbarDiv');
-var demoNavbar = document.getElementById('demo-navbar-list');
-var clearBtn = document.getElementById('clear-points-btn');
-var leaderboardCol = document.getElementById('leaderboardCol');
+const windowSize = window.matchMedia('(max-width: 768px)');
+const leaderboardCol = document.getElementById('leaderboardCol');
+const navbar = document.querySelector('.navbar');
 
 function mobileView() {
 	if (windowSize.matches) {
 		leaderboardCol.classList.add('flex-column');
+		navbar.classList.remove('gap-3');
 	} else {
 		leaderboardCol.classList.remove('flex-column');
+		navbar.classList.add('gap-3');
 	}
 }
 

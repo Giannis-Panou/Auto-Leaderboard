@@ -20,7 +20,7 @@
 			<h1>Auto Leaderboard</h1>
 		</header>
 		<nav
-			class="navbar d-flex flex-column justify-content-center align-items-center mb-3 gap-4"
+			class="navbar d-flex flex-column justify-content-center align-items-center mb-3 gap-3"
 		>
 			<div class="d-flex flex-column align-items-center justify-content-center">
 				<p>Upload CSV file</p>
@@ -39,8 +39,8 @@
 			<div
 				class="navbar d-flex flex-column align-items-center justify-content-center"
 			>
-				<div class="d-flex flex-row justify-content-around gap-5">
-					<div class="d-flex flex-column align-items-center">
+				<div class="d-flex flex-row justify-content-around gap-5" id="options">
+					<div class="d-flex flex-column align-items-center text-center">
 						<p>Points System</p>
 						<select id="points-system-select" class="form-select select">
 							<option value="WRC" class="custom-option">WRC</option>
@@ -53,7 +53,7 @@
 							<option value="F1" class="custom-option">F1</option>
 						</select>
 					</div>
-					<div class="d-flex flex-column align-items-center">
+					<div class="d-flex flex-column align-items-center text-center">
 						<p>Team Point Scorers</p>
 						<select id="points-scorers-select" class="form-select select">
 							<option value="Two" class="custom-option">2 Drivers</option>
