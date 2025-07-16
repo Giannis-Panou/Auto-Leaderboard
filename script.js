@@ -1,10 +1,20 @@
+// Points System
 const pointsSystem = {
 	WRC: [25, 17, 15, 12, 10, 8, 6, 4, 2, 1],
 	Powerstage: [5, 4, 3, 2, 1],
 	Rallycross: [20, 16, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1],
 	F1: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1],
 };
+
+// Points Contributors per Team
+const teamPointsSystem = {
+	Two: 2,
+	Three: 3,
+	Four: 4,
+};
+
 let selectedPointsSystem = 'WRC';
+let selectedTeamPointsSystem = 'Two';
 let leaderboard = {};
 let teamLeaderboard = {};
 
@@ -106,6 +116,7 @@ function csvToTeamJson(csv) {
 // Update leaderboard
 function updateLeaderboard(playersResults) {
 	const pointsArray = pointsSystem[selectedPointsSystem] || pointsSystem.WRC;
+	const teamContr = teamPointsSystem[selectedTeamPointsSystem] || 2;
 
 	const teamScores = {};
 
@@ -122,7 +133,9 @@ function updateLeaderboard(playersResults) {
 	});
 
 	Object.keys(teamScores).forEach((team) => {
-		const topScores = teamScores[team].sort((a, b) => b - a).slice(0, 2);
+		const topScores = teamScores[team]
+			.sort((a, b) => b - a)
+			.slice(0, teamContr);
 		const teamPoints = topScores.reduce((acc, score) => acc + score, 0);
 		teamLeaderboard[team] = (teamLeaderboard[team] || 0) + teamPoints;
 	});
@@ -300,6 +313,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	loadLeaderboard();
 	loadTeamLeaderboard();
 
+	// Points System Select
 	const select = document.getElementById('points-system-select');
 	if (select) {
 		selectedPointsSystem = select.value;
@@ -309,10 +323,22 @@ document.addEventListener('DOMContentLoaded', () => {
 		});
 	}
 
+	// Points Scorers Select
+	const scorersSelect = document.getElementById('points-scorers-select');
+	if (scorersSelect) {
+		selectedTeamPointsSystem = scorersSelect.value;
+
+		scorersSelect.addEventListener('change', (e) => {
+			selectedTeamPointsSystem = e.target.value;
+		});
+	}
+
+	// Load Results Button
 	document
 		.getElementById('load-results-btn')
 		.addEventListener('click', handleLoadResults);
 
+	// Clear Points
 	document.getElementById('clear-points-btn').addEventListener('click', () => {
 		if (confirm('Are you sure you want to clear all points?')) {
 			clearPoints();
@@ -320,12 +346,14 @@ document.addEventListener('DOMContentLoaded', () => {
 		}
 	});
 
+	// Delete All Data
 	document.getElementById('delete-all-btn').addEventListener('click', () => {
 		if (confirm('Are you sure you want to delete all data?')) {
 			clearLocalStorage();
 		}
 	});
 
+	// Demo Results 1
 	document
 		.getElementById('load-demo-results-btn')
 		.addEventListener('click', () => {
@@ -352,6 +380,7 @@ document.addEventListener('DOMContentLoaded', () => {
 				});
 		});
 
+	// Demo Results 2
 	document
 		.getElementById('load-demo-results-btn-2')
 		.addEventListener('click', () => {

@@ -18,7 +18,7 @@ header {
 	margin-top: 1%;
 }
 
-#points-system-select {
+.select {
 	background-color: #11121d;
 	color: #ffffff;
 	border: 1px solid #ffffff;
