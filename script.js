@@ -17,6 +17,7 @@ let selectedPointsSystem = 'WRC';
 let selectedTeamPointsSystem = 'Two';
 let leaderboard = {};
 let teamLeaderboard = {};
+let multipleResults = {};
 
 // Process CSV
 function processCsvResults(file) {
@@ -38,7 +39,23 @@ function processCsvResults(file) {
 				};
 			});
 
-			updateLeaderboard(combinedResults);
+			multipleResults[file.name] = combinedResults;
+
+			if (Object.keys(multipleResults).length >= 2) {
+				const allPlayers = Object.values(multipleResults).flat();
+
+				if (allPlayers[0]?.time) {
+					allPlayers.sort((a, b) => a.time - b.time);
+					allPlayers.forEach((player, index) => {
+						player.place = index + 1;
+					});
+				}
+
+				updateLeaderboard(allPlayers);
+				multipleResults = {}; // Clear after processing
+			} else {
+				updateLeaderboard(combinedResults);
+			}
 		} catch (error) {
 			console.error('Error processing CSV:', error);
 			alert('Error processing CSV file. Please check the file format.');
@@ -68,31 +85,36 @@ function processTeamCsv(file) {
 // CSV to JSON
 function csvToJson(csv, teamsFromStorage = []) {
 	const lines = csv.split('\n').filter((line) => line.trim() !== '');
-	// const teamsFromStorage = JSON.parse(localStorage.getItem('teams')) || [];
 
-	const results = lines.slice(1).flatMap((line) => {
+	return lines.slice(1).flatMap((line) => {
 		const values = line.split(',');
 
-		if (values.length >= 2) {
-			const username = values[1].trim();
+		if (values.length >= 3) {
 			const place = parseInt(values[0].trim(), 10);
+			const username = values[1].trim();
+			const timeStr = values[3].trim();
 
-			const teamEntry = teamsFromStorage.find(
-				(team) => team.username === username
-			);
-			const teamName = teamEntry ? teamEntry.team : null;
+			const parts = timeStr.split(':');
+			if (parts.length !== 3) return [];
+
+			const [hours, minutes, seconds] = parts;
+			const [sec, ms] = seconds.split('.');
+			const totalMs =
+				parseInt(hours) * 3600000 +
+				parseInt(minutes) * 60000 +
+				parseInt(sec) * 1000 +
+				(parseInt(ms.slice(0, 3)) || 0); // Take only 3-digit milliseconds
 
 			return {
-				username,
 				place,
-				team: teamName,
+				username,
+				time: totalMs,
+				timeStr,
 			};
 		}
 
 		return [];
 	});
-
-	return results;
 }
 
 // CSV to Team JSON
@@ -145,46 +167,92 @@ function updateLeaderboard(playersResults) {
 	displayTeamLeaderboard();
 }
 
-// Display leaderboard
-function displayLeaderboard() {
-	const teamsFromStorage = JSON.parse(localStorage.getItem('teams')) || [];
+// Update leaderboard based on time
+function updateLeaderboardTimeBased(playersResults) {
+	leaderboard = {}; // reset
 
-	const sortedLeaderboard = Object.entries(leaderboard).sort(
-		(a, b) => b[1] - a[1]
+	playersResults.forEach((player) => {
+		const { username, time, timeStr } = player;
+		leaderboard[username] = {
+			time,
+			timeStr,
+		};
+	});
+
+	saveLeaderboard();
+	displayTimeLeaderboard();
+}
+
+// Display Time leaderboard
+function displayTimeLeaderboard() {
+	const sorted = Object.entries(leaderboard).sort(
+		(a, b) => a[1].time - b[1].time
 	);
 
 	const resultsContainer = document.querySelector('.results-container');
 	resultsContainer.innerHTML = '';
 
-	if (sortedLeaderboard.length > 0) {
-		const leaderboardHtml = sortedLeaderboard
-			.map(([username, points], index) => {
-				const teamEntry = teamsFromStorage.find(
-					(teamObj) => teamObj.username === username
-				);
-
-				const team = teamEntry ? teamEntry.team : 'Unknown';
-
+	if (sorted.length > 0) {
+		const leaderboardHtml = sorted
+			.map(([username, timeObj], index) => {
 				return `<div class="leaderboard-entry list-group-item d-flex justify-content-between">
-							<div class="numberDiv">
-								<span class="number">${index + 1}</span>
-							</div>
-							<div class="players">
-								<span>${username}</span>
-							</div>
-							<div class="justify-content-center teams">
-								<span>${team}</span>
-							</div>
-							<div class="d-flex justify-content-end points">
-								<span>${points}</span>
-							</div>
-					</div>`;
+				<div class="numberDiv">
+					<span class="number">${index + 1}</span>
+				</div>
+				<div class="players">
+					<span>${username}</span>
+				</div>
+				<div class="d-flex justify-content-end points">
+					<span>${trimToThreeDecimals(timeObj.timeStr)}</span>
+				</div>
+			</div>`;
 			})
 			.join('');
 
-		resultsContainer.innerHTML = `${leaderboardHtml}`;
+		resultsContainer.innerHTML = leaderboardHtml;
 	}
 }
+
+// // Display leaderboard
+// function displayLeaderboard() {
+// 	const teamsFromStorage = JSON.parse(localStorage.getItem('teams')) || [];
+
+// 	const sortedLeaderboard = Object.entries(leaderboard).sort(
+// 		(a, b) => b[1] - a[1]
+// 	);
+
+// 	const resultsContainer = document.querySelector('.results-container');
+// 	resultsContainer.innerHTML = '';
+
+// 	if (sortedLeaderboard.length > 0) {
+// 		const leaderboardHtml = sortedLeaderboard
+// 			.map(([username, points], index) => {
+// 				const teamEntry = teamsFromStorage.find(
+// 					(teamObj) => teamObj.username === username
+// 				);
+
+// 				const team = teamEntry ? teamEntry.team : 'Unknown';
+
+// 				return `<div class="leaderboard-entry list-group-item d-flex justify-content-between">
+// 							<div class="numberDiv">
+// 								<span class="number">${index + 1}</span>
+// 							</div>
+// 							<div class="players">
+// 								<span>${username}</span>
+// 							</div>
+// 							<div class="justify-content-center teams">
+// 								<span>${team}</span>
+// 							</div>
+// 							<div class="d-flex justify-content-end points">
+// 								<span>${points}</span>
+// 							</div>
+// 					</div>`;
+// 			})
+// 			.join('');
+
+// 		resultsContainer.innerHTML = `${leaderboardHtml}`;
+// 	}
+// }
 
 // Display Team leaderboard
 function displayTeamLeaderboard() {
@@ -218,6 +286,10 @@ function displayTeamLeaderboard() {
 	}
 }
 
+function trimToThreeDecimals(timeStr) {
+	return timeStr.replace(/(\.\d{3})\d*/, '$1');
+}
+
 // Save leaderboard to localStorage
 function saveLeaderboard() {
 	localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
@@ -229,7 +301,7 @@ function loadLeaderboard() {
 	const savedLeaderboard = localStorage.getItem('leaderboard');
 	if (savedLeaderboard) {
 		leaderboard = JSON.parse(savedLeaderboard);
-		displayLeaderboard();
+		displayTimeLeaderboard();
 	}
 }
 
@@ -273,24 +345,53 @@ function clearLocalStorage() {
 // Load Results
 function handleLoadResults() {
 	const csvFileInput = document.getElementById('csv-file');
-	const file = csvFileInput.files[0];
+	const files = csvFileInput.files;
 
-	if (file) {
-		if (file.name.endsWith('.csv')) {
-			if (file.name.includes('_teams.csv')) {
-				processTeamCsv(file);
-				alert('Teams loaded successfully.');
-			} else {
-				processCsvResults(file);
-			}
-		} else {
-			alert('Please upload a CSV file.');
+	if (files.length === 0) {
+		alert('Please select a file.');
+		return;
+	}
+
+	const teamsFromStorage = JSON.parse(localStorage.getItem('teams')) || [];
+	const resultsPromises = [];
+
+	for (const file of files) {
+		if (!file.name.endsWith('.csv')) {
+			alert('Only CSV files are allowed.');
+			return;
 		}
 
-		csvFileInput.value = '';
-	} else {
-		alert('Please select a file.');
+		if (file.name.includes('_teams.csv')) {
+			processTeamCsv(file);
+			alert('Teams loaded successfully.');
+			return; // Stop here if it's a team file only
+		}
+
+		resultsPromises.push(readCsvFile(file));
 	}
+
+	Promise.all(resultsPromises)
+		.then((csvArray) => {
+			const combined = csvArray
+				.map((csv) => csvToJson(csv, teamsFromStorage))
+				.flat();
+
+			updateLeaderboardTimeBased(combined);
+		})
+		.catch((error) => {
+			console.error('Error processing files:', error);
+			alert('Could not read one or more files. Please check the file format.');
+		});
+	csvFileInput.value = '';
+}
+
+function readCsvFile(file) {
+	return new Promise((resolve, reject) => {
+		const reader = new FileReader();
+		reader.onload = (e) => resolve(e.target.result);
+		reader.onerror = reject;
+		reader.readAsText(file);
+	});
 }
 
 // Podium Styling
