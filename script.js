@@ -142,7 +142,6 @@ function updateLeaderboard(playersResults) {
 
 	saveLeaderboard();
 	displayLeaderboard();
-	displayTeamLeaderboard();
 }
 
 // Display leaderboard
@@ -184,19 +183,18 @@ function displayLeaderboard() {
 
 		resultsContainer.innerHTML = `${leaderboardHtml}`;
 	}
-}
 
-// Display Team leaderboard
-function displayTeamLeaderboard() {
-	const sortedLeaderboard = Object.entries(teamLeaderboard).sort(
+	const sortedTeamLeaderboard = Object.entries(teamLeaderboard).sort(
 		(a, b) => b[1] - a[1]
 	);
 
-	const resultsContainer = document.querySelector('.team-results-container');
-	resultsContainer.innerHTML = '';
+	const resultsTeamContainer = document.querySelector(
+		'.team-results-container'
+	);
+	resultsTeamContainer.innerHTML = '';
 
-	if (sortedLeaderboard.length > 0) {
-		const leaderboardHtml = sortedLeaderboard
+	if (sortedTeamLeaderboard.length > 0) {
+		const leaderboardTeamHtml = sortedTeamLeaderboard
 			.map(
 				([team, points], index) =>
 					`<div class="leaderboard-entry list-group-item d-flex justify-content-between">
@@ -213,7 +211,7 @@ function displayTeamLeaderboard() {
 			)
 			.join('');
 
-		resultsContainer.innerHTML = `${leaderboardHtml}`;
+		resultsTeamContainer.innerHTML = `${leaderboardTeamHtml}`;
 		podiumStyling();
 	}
 }
@@ -227,19 +225,17 @@ function saveLeaderboard() {
 // Load leaderboard from localStorage
 function loadLeaderboard() {
 	const savedLeaderboard = localStorage.getItem('leaderboard');
+	const savedTeamLeaderboard = localStorage.getItem('teamLeaderboard');
+
 	if (savedLeaderboard) {
 		leaderboard = JSON.parse(savedLeaderboard);
-		displayLeaderboard();
 	}
-}
 
-// Load Team leaderboard from localStorage
-function loadTeamLeaderboard() {
-	const savedLeaderboard = localStorage.getItem('teamLeaderboard');
-	if (savedLeaderboard) {
-		teamLeaderboard = JSON.parse(savedLeaderboard);
-		displayTeamLeaderboard();
+	if (savedTeamLeaderboard) {
+		teamLeaderboard = JSON.parse(savedTeamLeaderboard);
 	}
+
+	displayLeaderboard();
 }
 
 // Clear points but keep player names
@@ -249,15 +245,12 @@ function clearPoints() {
 	});
 	saveLeaderboard(); // Save the cleared leaderboard to localStorage
 	displayLeaderboard(); // Update the displayed leaderboard
-}
 
-// Clear team points but keep team names
-function clearTeamPoints() {
 	Object.keys(teamLeaderboard).forEach((team) => {
 		teamLeaderboard[team] = 0; // Set points to 0 but keep names
 	});
 	saveLeaderboard(); // Save the cleared leaderboard to localStorage
-	displayTeamLeaderboard(); // Update the displayed leaderboard
+	displayLeaderboard(); // Update the displayed leaderboard
 }
 
 // Clear LocalStorage
@@ -332,7 +325,6 @@ function mobileView() {
 
 document.addEventListener('DOMContentLoaded', () => {
 	loadLeaderboard();
-	loadTeamLeaderboard();
 
 	// Points System Select
 	const select = document.getElementById('points-system-select');
