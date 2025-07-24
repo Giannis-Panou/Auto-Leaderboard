@@ -18,6 +18,8 @@ let selectedTeamPointsSystem = 'Two';
 let leaderboard = {};
 let teamLeaderboard = {};
 
+// FILE PROCESSING -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 // Process CSV
 function processCsvResults(file) {
 	const reader = new FileReader();
@@ -112,6 +114,10 @@ function csvToTeamJson(csv) {
 
 	return teams;
 }
+
+// -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+// LEADERBOARD MANIPULATION -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 // Update leaderboard
 function updateLeaderboard(playersResults) {
@@ -238,30 +244,9 @@ function loadLeaderboard() {
 	displayLeaderboard();
 }
 
-// Clear points but keep player names
-function clearPoints() {
-	Object.keys(leaderboard).forEach((username) => {
-		leaderboard[username] = 0; // Set points to 0 but keep names
-	});
-	saveLeaderboard(); // Save the cleared leaderboard to localStorage
-	displayLeaderboard(); // Update the displayed leaderboard
+// -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-	Object.keys(teamLeaderboard).forEach((team) => {
-		teamLeaderboard[team] = 0; // Set points to 0 but keep names
-	});
-	saveLeaderboard(); // Save the cleared leaderboard to localStorage
-	displayLeaderboard(); // Update the displayed leaderboard
-}
-
-// Clear LocalStorage
-function clearLocalStorage() {
-	localStorage.removeItem('leaderboard');
-	localStorage.removeItem('teamLeaderboard');
-	leaderboard = {};
-	teamLeaderboard = {};
-	displayLeaderboard();
-	displayTeamLeaderboard();
-}
+// LOADING AND CLEARING -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 // Load Results
 function handleLoadResults() {
@@ -285,6 +270,34 @@ function handleLoadResults() {
 		alert('Please select a file.');
 	}
 }
+
+// Clear points but keep player names
+function clearPoints() {
+	Object.keys(leaderboard).forEach((username) => {
+		leaderboard[username] = 0;
+	});
+	saveLeaderboard();
+	displayLeaderboard();
+
+	Object.keys(teamLeaderboard).forEach((team) => {
+		teamLeaderboard[team] = 0;
+	});
+	saveLeaderboard();
+	displayLeaderboard();
+}
+
+// Clear LocalStorage
+function clearLocalStorage() {
+	localStorage.removeItem('leaderboard');
+	localStorage.removeItem('teamLeaderboard');
+	leaderboard = {};
+	teamLeaderboard = {};
+	displayLeaderboard();
+}
+
+// -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+// STYLING AND LISTENERS -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 // Podium Styling
 function podiumStyling() {
@@ -355,7 +368,6 @@ document.addEventListener('DOMContentLoaded', () => {
 	document.getElementById('clear-points-btn').addEventListener('click', () => {
 		if (confirm('Are you sure you want to clear all points?')) {
 			clearPoints();
-			clearTeamPoints();
 		}
 	});
 
@@ -426,3 +438,5 @@ document.addEventListener('DOMContentLoaded', mobileView);
 
 // Run on window resize
 window.addEventListener('resize', mobileView);
+
+// -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
