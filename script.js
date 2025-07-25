@@ -21,7 +21,7 @@ let teamLeaderboard = {};
 // FILE PROCESSING -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 // Process CSV
-function processCsvResults(file) {
+function processCsv(file) {
 	const reader = new FileReader();
 
 	reader.onload = function (event) {
@@ -57,7 +57,7 @@ function processTeamCsv(file) {
 	reader.onload = function (event) {
 		try {
 			const csvResults = event.target.result;
-			const teams = csvToTeamJson(csvResults);
+			const teams = teamCsvToJson(csvResults);
 			localStorage.setItem('teams', JSON.stringify(teams));
 		} catch (error) {
 			console.error('Error processing Teams CSV:', error);
@@ -98,7 +98,7 @@ function csvToJson(csv, teamsFromStorage = []) {
 }
 
 // CSV to Team JSON
-function csvToTeamJson(csv) {
+function teamCsvToJson(csv) {
 	const lines = csv.split('\n').filter((line) => line.trim() !== '');
 
 	const teams = lines.slice(1).flatMap((line) => {
@@ -249,7 +249,7 @@ function loadLeaderboard() {
 // LOADING AND CLEARING -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 // Load Results
-function handleLoadResults() {
+function loadResults() {
 	const csvFileInput = document.getElementById('csv-file');
 	const file = csvFileInput.files[0];
 
@@ -259,7 +259,7 @@ function handleLoadResults() {
 				processTeamCsv(file);
 				alert('Teams loaded successfully.');
 			} else {
-				processCsvResults(file);
+				processCsv(file);
 			}
 		} else {
 			alert('Please upload a CSV file.');
@@ -338,6 +338,7 @@ function mobileView() {
 
 document.addEventListener('DOMContentLoaded', () => {
 	loadLeaderboard();
+	mobileView();
 
 	// Points System Select
 	const select = document.getElementById('points-system-select');
@@ -362,7 +363,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	// Load Results Button
 	document
 		.getElementById('load-results-btn')
-		.addEventListener('click', handleLoadResults);
+		.addEventListener('click', loadResults);
 
 	// Clear Points
 	document.getElementById('clear-points-btn').addEventListener('click', () => {
@@ -397,7 +398,7 @@ document.addEventListener('DOMContentLoaded', () => {
 					const demoFile = new File([csvText], 'demoresults.csv', {
 						type: 'text/csv',
 					});
-					processCsvResults(demoFile);
+					processCsv(demoFile);
 				})
 				.catch((error) => {
 					console.error('Failed to load demo results:', error);
@@ -424,7 +425,7 @@ document.addEventListener('DOMContentLoaded', () => {
 					const demoFile = new File([csvText], 'demoresults.csv', {
 						type: 'text/csv',
 					});
-					processCsvResults(demoFile);
+					processCsv(demoFile);
 				})
 				.catch((error) => {
 					console.error('Failed to load demo results:', error);
@@ -432,9 +433,6 @@ document.addEventListener('DOMContentLoaded', () => {
 				});
 		});
 });
-
-// Run on page load
-document.addEventListener('DOMContentLoaded', mobileView);
 
 // Run on window resize
 window.addEventListener('resize', mobileView);
