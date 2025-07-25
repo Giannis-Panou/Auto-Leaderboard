@@ -1,9 +1,10 @@
 // Points System
 const pointsSystem = {
 	WRC: [25, 17, 15, 12, 10, 8, 6, 4, 2, 1],
-	Powerstage: [5, 4, 3, 2, 1],
+	WRC_Powerstage: [5, 4, 3, 2, 1],
 	Rallycross: [20, 16, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1],
 	F1: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1],
+	F1_Sprint: [8, 7, 6, 5, 4, 3, 2, 1],
 };
 
 // Points Contributors per Team
