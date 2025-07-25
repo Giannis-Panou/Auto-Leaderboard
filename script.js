@@ -1,9 +1,10 @@
 // Points System
 const pointsSystem = {
 	WRC: [25, 17, 15, 12, 10, 8, 6, 4, 2, 1],
-	Powerstage: [5, 4, 3, 2, 1],
+	WRC_Powerstage: [5, 4, 3, 2, 1],
 	Rallycross: [20, 16, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1],
 	F1: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1],
+	F1_Sprint: [8, 7, 6, 5, 4, 3, 2, 1],
 };
 
 // Points Contributors per Team
@@ -19,8 +20,10 @@ let leaderboard = {};
 let teamLeaderboard = {};
 let multipleResults = {};
 
+// FILE PROCESSING -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 // Process CSV
-function processCsvResults(file) {
+function processCsv(file) {
 	const reader = new FileReader();
 
 	reader.onload = function (event) {
@@ -72,7 +75,7 @@ function processTeamCsv(file) {
 	reader.onload = function (event) {
 		try {
 			const csvResults = event.target.result;
-			const teams = csvToTeamJson(csvResults);
+			const teams = teamCsvToJson(csvResults);
 			localStorage.setItem('teams', JSON.stringify(teams));
 		} catch (error) {
 			console.error('Error processing Teams CSV:', error);
@@ -118,7 +121,7 @@ function csvToJson(csv, teamsFromStorage = []) {
 }
 
 // CSV to Team JSON
-function csvToTeamJson(csv) {
+function teamCsvToJson(csv) {
 	const lines = csv.split('\n').filter((line) => line.trim() !== '');
 
 	const teams = lines.slice(1).flatMap((line) => {
@@ -134,6 +137,10 @@ function csvToTeamJson(csv) {
 
 	return teams;
 }
+
+// -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+// LEADERBOARD MANIPULATION -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 // Update leaderboard
 function updateLeaderboard(playersResults) {
@@ -164,7 +171,6 @@ function updateLeaderboard(playersResults) {
 
 	saveLeaderboard();
 	displayLeaderboard();
-	displayTeamLeaderboard();
 }
 
 // Update leaderboard based on time
@@ -209,62 +215,20 @@ function displayTimeLeaderboard() {
 			})
 			.join('');
 
-		resultsContainer.innerHTML = leaderboardHtml;
+		resultsContainer.innerHTML = `${leaderboardHtml}`;
 	}
-}
 
-// // Display leaderboard
-// function displayLeaderboard() {
-// 	const teamsFromStorage = JSON.parse(localStorage.getItem('teams')) || [];
-
-// 	const sortedLeaderboard = Object.entries(leaderboard).sort(
-// 		(a, b) => b[1] - a[1]
-// 	);
-
-// 	const resultsContainer = document.querySelector('.results-container');
-// 	resultsContainer.innerHTML = '';
-
-// 	if (sortedLeaderboard.length > 0) {
-// 		const leaderboardHtml = sortedLeaderboard
-// 			.map(([username, points], index) => {
-// 				const teamEntry = teamsFromStorage.find(
-// 					(teamObj) => teamObj.username === username
-// 				);
-
-// 				const team = teamEntry ? teamEntry.team : 'Unknown';
-
-// 				return `<div class="leaderboard-entry list-group-item d-flex justify-content-between">
-// 							<div class="numberDiv">
-// 								<span class="number">${index + 1}</span>
-// 							</div>
-// 							<div class="players">
-// 								<span>${username}</span>
-// 							</div>
-// 							<div class="justify-content-center teams">
-// 								<span>${team}</span>
-// 							</div>
-// 							<div class="d-flex justify-content-end points">
-// 								<span>${points}</span>
-// 							</div>
-// 					</div>`;
-// 			})
-// 			.join('');
-
-// 		resultsContainer.innerHTML = `${leaderboardHtml}`;
-// 	}
-// }
-
-// Display Team leaderboard
-function displayTeamLeaderboard() {
-	const sortedLeaderboard = Object.entries(teamLeaderboard).sort(
+	const sortedTeamLeaderboard = Object.entries(teamLeaderboard).sort(
 		(a, b) => b[1] - a[1]
 	);
 
-	const resultsContainer = document.querySelector('.team-results-container');
-	resultsContainer.innerHTML = '';
+	const resultsTeamContainer = document.querySelector(
+		'.team-results-container'
+	);
+	resultsTeamContainer.innerHTML = '';
 
-	if (sortedLeaderboard.length > 0) {
-		const leaderboardHtml = sortedLeaderboard
+	if (sortedTeamLeaderboard.length > 0) {
+		const leaderboardTeamHtml = sortedTeamLeaderboard
 			.map(
 				([team, points], index) =>
 					`<div class="leaderboard-entry list-group-item d-flex justify-content-between">
@@ -281,7 +245,7 @@ function displayTeamLeaderboard() {
 			)
 			.join('');
 
-		resultsContainer.innerHTML = `${leaderboardHtml}`;
+		resultsTeamContainer.innerHTML = `${leaderboardTeamHtml}`;
 		podiumStyling();
 	}
 }
@@ -299,37 +263,59 @@ function saveLeaderboard() {
 // Load leaderboard from localStorage
 function loadLeaderboard() {
 	const savedLeaderboard = localStorage.getItem('leaderboard');
+	const savedTeamLeaderboard = localStorage.getItem('teamLeaderboard');
+
 	if (savedLeaderboard) {
 		leaderboard = JSON.parse(savedLeaderboard);
-		displayTimeLeaderboard();
 	}
+
+	if (savedTeamLeaderboard) {
+		teamLeaderboard = JSON.parse(savedTeamLeaderboard);
+	}
+
+	displayLeaderboard();
 }
 
-// Load Team leaderboard from localStorage
-function loadTeamLeaderboard() {
-	const savedLeaderboard = localStorage.getItem('teamLeaderboard');
-	if (savedLeaderboard) {
-		teamLeaderboard = JSON.parse(savedLeaderboard);
-		displayTeamLeaderboard();
+// -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+// LOADING AND CLEARING -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+// Load Results
+function loadResults() {
+	const csvFileInput = document.getElementById('csv-file');
+	const file = csvFileInput.files[0];
+
+	if (file) {
+		if (file.name.endsWith('.csv')) {
+			if (file.name.includes('_teams.csv')) {
+				processTeamCsv(file);
+				alert('Teams loaded successfully.');
+			} else {
+				processCsv(file);
+			}
+		} else {
+			alert('Please upload a CSV file.');
+		}
+
+		csvFileInput.value = '';
+	} else {
+		alert('Please select a file.');
 	}
 }
 
 // Clear points but keep player names
 function clearPoints() {
 	Object.keys(leaderboard).forEach((username) => {
-		leaderboard[username] = 0; // Set points to 0 but keep names
+		leaderboard[username] = 0;
 	});
-	saveLeaderboard(); // Save the cleared leaderboard to localStorage
-	displayLeaderboard(); // Update the displayed leaderboard
-}
+	saveLeaderboard();
+	displayLeaderboard();
 
-// Clear team points but keep team names
-function clearTeamPoints() {
 	Object.keys(teamLeaderboard).forEach((team) => {
-		teamLeaderboard[team] = 0; // Set points to 0 but keep names
+		teamLeaderboard[team] = 0;
 	});
-	saveLeaderboard(); // Save the cleared leaderboard to localStorage
-	displayTeamLeaderboard(); // Update the displayed leaderboard
+	saveLeaderboard();
+	displayLeaderboard();
 }
 
 // Clear LocalStorage
@@ -339,60 +325,11 @@ function clearLocalStorage() {
 	leaderboard = {};
 	teamLeaderboard = {};
 	displayLeaderboard();
-	displayTeamLeaderboard();
 }
 
-// Load Results
-function handleLoadResults() {
-	const csvFileInput = document.getElementById('csv-file');
-	const files = csvFileInput.files;
+// -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-	if (files.length === 0) {
-		alert('Please select a file.');
-		return;
-	}
-
-	const teamsFromStorage = JSON.parse(localStorage.getItem('teams')) || [];
-	const resultsPromises = [];
-
-	for (const file of files) {
-		if (!file.name.endsWith('.csv')) {
-			alert('Only CSV files are allowed.');
-			return;
-		}
-
-		if (file.name.includes('_teams.csv')) {
-			processTeamCsv(file);
-			alert('Teams loaded successfully.');
-			return; // Stop here if it's a team file only
-		}
-
-		resultsPromises.push(readCsvFile(file));
-	}
-
-	Promise.all(resultsPromises)
-		.then((csvArray) => {
-			const combined = csvArray
-				.map((csv) => csvToJson(csv, teamsFromStorage))
-				.flat();
-
-			updateLeaderboardTimeBased(combined);
-		})
-		.catch((error) => {
-			console.error('Error processing files:', error);
-			alert('Could not read one or more files. Please check the file format.');
-		});
-	csvFileInput.value = '';
-}
-
-function readCsvFile(file) {
-	return new Promise((resolve, reject) => {
-		const reader = new FileReader();
-		reader.onload = (e) => resolve(e.target.result);
-		reader.onerror = reject;
-		reader.readAsText(file);
-	});
-}
+// STYLING AND LISTENERS -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 // Podium Styling
 function podiumStyling() {
@@ -433,7 +370,7 @@ function mobileView() {
 
 document.addEventListener('DOMContentLoaded', () => {
 	loadLeaderboard();
-	loadTeamLeaderboard();
+	mobileView();
 
 	// Points System Select
 	const select = document.getElementById('points-system-select');
@@ -458,13 +395,12 @@ document.addEventListener('DOMContentLoaded', () => {
 	// Load Results Button
 	document
 		.getElementById('load-results-btn')
-		.addEventListener('click', handleLoadResults);
+		.addEventListener('click', loadResults);
 
 	// Clear Points
 	document.getElementById('clear-points-btn').addEventListener('click', () => {
 		if (confirm('Are you sure you want to clear all points?')) {
 			clearPoints();
-			clearTeamPoints();
 		}
 	});
 
@@ -494,7 +430,7 @@ document.addEventListener('DOMContentLoaded', () => {
 					const demoFile = new File([csvText], 'demoresults.csv', {
 						type: 'text/csv',
 					});
-					processCsvResults(demoFile);
+					processCsv(demoFile);
 				})
 				.catch((error) => {
 					console.error('Failed to load demo results:', error);
@@ -521,7 +457,7 @@ document.addEventListener('DOMContentLoaded', () => {
 					const demoFile = new File([csvText], 'demoresults.csv', {
 						type: 'text/csv',
 					});
-					processCsvResults(demoFile);
+					processCsv(demoFile);
 				})
 				.catch((error) => {
 					console.error('Failed to load demo results:', error);
@@ -530,8 +466,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		});
 });
 
-// Run on page load
-document.addEventListener('DOMContentLoaded', mobileView);
-
 // Run on window resize
 window.addEventListener('resize', mobileView);
+
+// -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
