@@ -191,15 +191,13 @@ function updateLeaderboard(playersResults) {
 	const pointsArray = pointsSystem[selectedPointsSystem] || pointsSystem.WRC;
 	const teamContr = teamPointsSystem[selectedTeamPointsSystem] || 2;
 
-	leaderboard = {}; // reset
-	teamLeaderboard = {}; // reset
 	const teamScores = {};
 
 	playersResults.forEach((player) => {
 		const { username, place, team } = player;
 		const points = pointsArray[place - 1] || 0;
 
-		leaderboard[username] = points;
+		leaderboard[username] = (leaderboard[username] || 0) + points;
 
 		if (team && team !== 'Unknown') {
 			if (!teamScores[team]) teamScores[team] = [];
@@ -212,7 +210,7 @@ function updateLeaderboard(playersResults) {
 			.sort((a, b) => b - a)
 			.slice(0, teamContr);
 		const teamPoints = topScores.reduce((acc, score) => acc + score, 0);
-		teamLeaderboard[team] = teamPoints;
+		teamLeaderboard[team] = (teamLeaderboard[team] || 0) + teamPoints;
 	});
 
 	saveLeaderboard();
