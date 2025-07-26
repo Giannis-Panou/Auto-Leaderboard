@@ -18,7 +18,9 @@ let selectedPointsSystem = 'WRC';
 let selectedTeamPointsSystem = 'Two';
 let leaderboard = {};
 let teamLeaderboard = {};
+let timeleaderboard = {};
 let multipleResults = {};
+let pendingFiles = new Set();
 
 // FILE PROCESSING -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -39,33 +41,75 @@ function processCsv(file) {
 				return {
 					...player,
 					team: teamEntry ? teamEntry.team : 'Unknown',
+					source: file.name,
 				};
 			});
 
 			multipleResults[file.name] = combinedResults;
+			pendingFiles.delete(file.name);
 
-			if (Object.keys(multipleResults).length >= 2) {
-				const allPlayers = Object.values(multipleResults).flat();
+			console.log(
+				`Processed file: ${file.name}, ${combinedResults.length} results.`
+			);
 
-				if (allPlayers[0]?.time) {
-					allPlayers.sort((a, b) => a.time - b.time);
-					allPlayers.forEach((player, index) => {
-						player.place = index + 1;
-					});
-				}
-
-				updateLeaderboard(allPlayers);
-				multipleResults = {}; // Clear after processing
-			} else {
-				updateLeaderboard(combinedResults);
+			if (pendingFiles.size === 0) {
+				processAllResults();
 			}
 		} catch (error) {
-			console.error('Error processing CSV:', error);
-			alert('Error processing CSV file. Please check the file format.');
+			console.error(`Error processing file ${file.name}:`, error);
+			alert(`Error processing file ${file.name}. Please check the format.`);
+			pendingFiles.delete(file.name);
+			if (pendingFiles.size === 0) {
+				processAllResults();
+			}
 		}
 	};
 
 	reader.readAsText(file);
+}
+
+function processAllResults() {
+	const fileNames = Object.keys(multipleResults);
+
+	if (fileNames.length === 0) {
+		alert('No valid results files found.');
+		return;
+	}
+
+	console.log(`Processing ${fileNames.length} file(s)`, fileNames);
+
+	if (fileNames.length === 1) {
+		const singleFile = multipleResults[fileNames[0]];
+		console.log(`Single file results: ${singleFile.length} entries.`);
+		updateLeaderboard(singleFile);
+		updateLeaderboardTimeBased(singleFile);
+	} else {
+		const multipleFiles = Object.values(multipleResults).flat();
+		console.log(
+			`Multiple files combined results: ${multipleFiles.length} entries.`
+		);
+
+		multipleFiles.sort((a, b) => a.time - b.time);
+
+		multipleFiles.forEach((player, index) => {
+			player.place = index + 1; // Assign place based on sorted order
+		});
+
+		console.log(
+			`Combined results after sorting: ${multipleFiles.length} entries.`
+		);
+
+		updateLeaderboard(multipleFiles);
+		updateLeaderboardTimeBased(multipleFiles);
+
+		const fileSummary = Object.entries(multipleResults)
+			.map(([fileName, results]) => `${fileName}: ${results.length} entries`)
+			.join('\n');
+
+		console.log(`Processed files:\n${fileSummary}`);
+	}
+
+	multipleResults = {}; // Clear after processing
 }
 
 // Process Team CSV
@@ -147,15 +191,17 @@ function updateLeaderboard(playersResults) {
 	const pointsArray = pointsSystem[selectedPointsSystem] || pointsSystem.WRC;
 	const teamContr = teamPointsSystem[selectedTeamPointsSystem] || 2;
 
+	leaderboard = {}; // reset
+	teamLeaderboard = {}; // reset
 	const teamScores = {};
 
 	playersResults.forEach((player) => {
 		const { username, place, team } = player;
 		const points = pointsArray[place - 1] || 0;
 
-		leaderboard[username] = (leaderboard[username] || 0) + points;
+		leaderboard[username] = points;
 
-		if (team) {
+		if (team && team !== 'Unknown') {
 			if (!teamScores[team]) teamScores[team] = [];
 			teamScores[team].push(points);
 		}
@@ -166,7 +212,7 @@ function updateLeaderboard(playersResults) {
 			.sort((a, b) => b - a)
 			.slice(0, teamContr);
 		const teamPoints = topScores.reduce((acc, score) => acc + score, 0);
-		teamLeaderboard[team] = (teamLeaderboard[team] || 0) + teamPoints;
+		teamLeaderboard[team] = teamPoints;
 	});
 
 	saveLeaderboard();
@@ -175,27 +221,100 @@ function updateLeaderboard(playersResults) {
 
 // Update leaderboard based on time
 function updateLeaderboardTimeBased(playersResults) {
-	leaderboard = {}; // reset
-
 	playersResults.forEach((player) => {
 		const { username, time, timeStr } = player;
-		leaderboard[username] = {
-			time,
-			timeStr,
-		};
+
+		if (!timeleaderboard[username] || time < timeleaderboard[username].time) {
+			timeleaderboard[username] = {
+				time,
+				timeStr,
+			};
+		}
 	});
 
-	saveLeaderboard();
+	localStorage.setItem('timeLeaderboard', JSON.stringify(timeleaderboard));
 	displayTimeLeaderboard();
+}
+
+// Display leaderboard
+function displayLeaderboard() {
+	const teamsFromStorage = JSON.parse(localStorage.getItem('teams')) || [];
+
+	const sortedLeaderboard = Object.entries(leaderboard).sort(
+		(a, b) => b[1] - a[1]
+	);
+
+	const resultsContainer = document.querySelector('.results-container');
+	resultsContainer.innerHTML = '';
+
+	if (sortedLeaderboard.length > 0) {
+		const leaderboardHtml = sortedLeaderboard
+			.map(([username, points], index) => {
+				const teamEntry = teamsFromStorage.find(
+					(teamObj) => teamObj.username === username
+				);
+
+				const team = teamEntry ? teamEntry.team : 'Unknown';
+
+				return `<div class="leaderboard-entry list-group-item d-flex justify-content-between">
+							<div class="numberDiv">
+								<span class="number">${index + 1}</span>
+							</div>
+							<div class="players">
+								<span>${username}</span>
+							</div>
+							<div class="justify-content-center teams">
+								<span>${team}</span>
+							</div>
+							<div class="d-flex justify-content-end points">
+								<span>${points}</span>
+							</div>
+					</div>`;
+			})
+			.join('');
+
+		resultsContainer.innerHTML = `${leaderboardHtml}`;
+	}
+
+	const sortedTeamLeaderboard = Object.entries(teamLeaderboard).sort(
+		(a, b) => b[1] - a[1]
+	);
+
+	const resultsTeamContainer = document.querySelector(
+		'.team-results-container'
+	);
+	resultsTeamContainer.innerHTML = '';
+
+	if (sortedTeamLeaderboard.length > 0) {
+		const leaderboardTeamHtml = sortedTeamLeaderboard
+			.map(
+				([team, points], index) =>
+					`<div class="leaderboard-entry list-group-item d-flex justify-content-between">
+						<div class="numberDiv">
+							<span class="number">${index + 1}</span>
+						</div>
+						<div class="d-flex flex-grow-1 flex-row players">
+							<span>${team}</span>
+						</div>
+						<div class="d-flex flex-grow-1 justify-content-end points">
+							<span>${points}</span>
+						</div>
+					</div>`
+			)
+			.join('');
+
+		resultsTeamContainer.innerHTML = `${leaderboardTeamHtml}`;
+		podiumStyling();
+	}
 }
 
 // Display Time leaderboard
 function displayTimeLeaderboard() {
-	const sorted = Object.entries(leaderboard).sort(
+	const sorted = Object.entries(timeleaderboard).sort(
 		(a, b) => a[1].time - b[1].time
 	);
 
-	const resultsContainer = document.querySelector('.results-container');
+	const resultsContainer = document.querySelector('.time-results-container');
 	resultsContainer.innerHTML = '';
 
 	if (sorted.length > 0) {
@@ -258,12 +377,14 @@ function trimToThreeDecimals(timeStr) {
 function saveLeaderboard() {
 	localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
 	localStorage.setItem('teamLeaderboard', JSON.stringify(teamLeaderboard));
+	localStorage.setItem('timeLeaderboard', JSON.stringify(timeleaderboard));
 }
 
 // Load leaderboard from localStorage
 function loadLeaderboard() {
 	const savedLeaderboard = localStorage.getItem('leaderboard');
 	const savedTeamLeaderboard = localStorage.getItem('teamLeaderboard');
+	const savedTimeLeaderboard = localStorage.getItem('timeLeaderboard');
 
 	if (savedLeaderboard) {
 		leaderboard = JSON.parse(savedLeaderboard);
@@ -273,7 +394,12 @@ function loadLeaderboard() {
 		teamLeaderboard = JSON.parse(savedTeamLeaderboard);
 	}
 
+	if (savedTimeLeaderboard) {
+		timeleaderboard = JSON.parse(savedTimeLeaderboard);
+	}
+
 	displayLeaderboard();
+	displayTimeLeaderboard();
 }
 
 // -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -283,24 +409,47 @@ function loadLeaderboard() {
 // Load Results
 function loadResults() {
 	const csvFileInput = document.getElementById('csv-file');
-	const file = csvFileInput.files[0];
+	const files = csvFileInput.files;
 
-	if (file) {
-		if (file.name.endsWith('.csv')) {
-			if (file.name.includes('_teams.csv')) {
-				processTeamCsv(file);
-				alert('Teams loaded successfully.');
-			} else {
-				processCsv(file);
-			}
-		} else {
-			alert('Please upload a CSV file.');
-		}
-
-		csvFileInput.value = '';
-	} else {
-		alert('Please select a file.');
+	if (files.length === 0) {
+		alert('Please select a file to upload.');
+		return;
 	}
+
+	multipleResults = {};
+	pendingFiles.clear();
+
+	const csvFiles = Array.from(files).filter(
+		(file) => file.name.endsWith('.csv') && !file.name.includes('_teams.csv')
+	);
+
+	const teamFiles = Array.from(files).filter((file) =>
+		file.name.includes('_teams.csv')
+	);
+
+	teamFiles.forEach((file) => {
+		processTeamCsv(file);
+	});
+
+	if (csvFiles.length === 0) {
+		if (teamFiles.length > 0) {
+			alert('Teams loaded successfully.');
+		} else {
+			alert('Please select a valid CSV file.');
+		}
+		csvFileInput.value = '';
+		return;
+	}
+
+	csvFiles.forEach((file) => {
+		pendingFiles.add(file.name);
+	});
+
+	csvFiles.forEach((file) => {
+		processCsv(file);
+	});
+
+	csvFileInput.value = '';
 }
 
 // Clear points but keep player names
@@ -310,21 +459,26 @@ function clearPoints() {
 	});
 	saveLeaderboard();
 	displayLeaderboard();
+	displayTimeLeaderboard();
 
 	Object.keys(teamLeaderboard).forEach((team) => {
 		teamLeaderboard[team] = 0;
 	});
 	saveLeaderboard();
 	displayLeaderboard();
+	displayTimeLeaderboard();
 }
 
 // Clear LocalStorage
 function clearLocalStorage() {
 	localStorage.removeItem('leaderboard');
 	localStorage.removeItem('teamLeaderboard');
+	localStorage.removeItem('timeLeaderboard');
 	leaderboard = {};
 	teamLeaderboard = {};
+	timeleaderboard = {};
 	displayLeaderboard();
+	displayTimeLeaderboard();
 }
 
 // -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -415,6 +569,10 @@ document.addEventListener('DOMContentLoaded', () => {
 	document
 		.getElementById('load-demo-results-btn')
 		.addEventListener('click', () => {
+			multipleResults = {};
+			pendingFiles.clear();
+
+			pendingFiles.add('demo_results.csv');
 			fetch('demoresults/demo_teams.csv')
 				.then((r) => r.text())
 				.then((csvText) => {
@@ -427,7 +585,7 @@ document.addEventListener('DOMContentLoaded', () => {
 			fetch('demoresults/demo_results.csv')
 				.then((response) => response.text())
 				.then((csvText) => {
-					const demoFile = new File([csvText], 'demoresults.csv', {
+					const demoFile = new File([csvText], 'demo_results.csv', {
 						type: 'text/csv',
 					});
 					processCsv(demoFile);
@@ -442,6 +600,10 @@ document.addEventListener('DOMContentLoaded', () => {
 	document
 		.getElementById('load-demo-results-btn-2')
 		.addEventListener('click', () => {
+			multipleResults = {};
+			pendingFiles.clear();
+
+			pendingFiles.add('demo_results_2.csv');
 			fetch('demoresults/demo_teams.csv')
 				.then((r) => r.text())
 				.then((csvText) => {
@@ -454,7 +616,7 @@ document.addEventListener('DOMContentLoaded', () => {
 			fetch('demoresults/demo_results_2.csv')
 				.then((response) => response.text())
 				.then((csvText) => {
-					const demoFile = new File([csvText], 'demoresults.csv', {
+					const demoFile = new File([csvText], 'demo_results_2.csv', {
 						type: 'text/csv',
 					});
 					processCsv(demoFile);
