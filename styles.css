@@ -1,6 +1,11 @@
-@font-face {
+/* @font-face {
 	font-family: 'racing-font';
 	src: url('/fonts/sprintura-demo/Sprintura\ Demo.otf');
+} */
+
+@font-face {
+	font-family: 'racing-font';
+	src: url('/fonts/wrc/WRCCleanBold.ttf');
 }
 
 body {
@@ -14,7 +19,7 @@ body {
 }
 
 header {
-	font-family: 'racing-font';
+	text-transform: uppercase;
 	margin-top: 1%;
 }
 
@@ -38,10 +43,9 @@ header {
 	box-shadow: none;
 }
 
-#options {
-	border: 1px solid #11121d;
+#csv-file::file-selector-button {
+	text-transform: uppercase;
 }
-
 .nav-button {
 	border-radius: 0;
 	border-top-left-radius: 10px;
@@ -61,14 +65,14 @@ header {
 }
 
 #clear-points-btn {
-	background-color: #11121d;
+	background-color: #d40000;
 	border: 1px solid #d40000;
 	color: #ffffff;
-	margin-right: -1px;
 }
 
 #clear-points-btn:hover {
-	background-color: #d40000;
+	background-color: #b30000;
+	border: 1px solid #b30000;
 }
 
 #delete-all-btn {
@@ -83,27 +87,25 @@ header {
 }
 
 #load-demo-results-btn {
-	background-color: #11121d;
-	border: 1px solid #d0ff00;
+	background-color: #fb4c04;
+	border: 1px solid #fb4c04;
 	color: #ffffff;
-	margin-right: -1px;
 }
 
 #load-demo-results-btn:hover {
-	background-color: #d0ff00;
-	border: 1px solid #d0ff00;
-	color: #11121d;
+	background-color: #da3e00;
+	border: 1px solid #da3e00;
 }
 
 #load-demo-results-btn-2 {
-	background-color: #d0ff00;
-	border: 1px solid #d0ff00;
-	color: #11121d;
+	background-color: #fb4c04;
+	border: 1px solid #fb4c04;
+	color: #ffffff;
 }
 
 #load-demo-results-btn-2:hover {
-	background-color: #d0ff00e3;
-	border: 1px solid #d0ff00e3;
+	background-color: #da3e00;
+	border: 1px solid #da3e00;
 }
 
 #leaderboardDiv {
@@ -111,6 +113,10 @@ header {
 }
 
 #leaderboardCol {
+	width: 97.5%;
+}
+
+#leaderboardCol2 {
 	width: 97.5%;
 }
 
@@ -138,10 +144,20 @@ header {
 	border-top-right-radius: 0;
 }
 
+.time-results-container {
+	max-height: 100vh;
+	overflow-y: auto;
+	scrollbar-color: #ffffff #1d2033;
+	scrollbar-width: thin;
+	padding-bottom: 10px;
+	border-top-left-radius: 10px;
+	border-top-right-radius: 0;
+}
+
 .leaderboard-entry {
 	display: flex;
 	align-items: center;
-	background-color: #1d2033;
+	background-color: #202c43;
 	color: #ffffff;
 	font-family: 'racing-font';
 	font-size: medium;
@@ -163,14 +179,15 @@ header {
 }
 
 .numberDiv {
+	font-size: larger;
 	flex: 0 0 40px;
 	position: absolute;
 	left: 0;
 	top: 0;
 	width: 40px;
 	height: 100%;
-	background: white;
-	color: black;
+	background: #ffffff;
+	color: #11121d;
 	display: flex;
 	justify-content: center;
 	align-items: center;
@@ -181,6 +198,7 @@ header {
 }
 
 .players {
+	font-size: larger;
 	flex-grow: 3;
 	flex-shrink: 1;
 	flex-basis: 0;
@@ -190,12 +208,17 @@ header {
 }
 
 .teams {
+	font-size: larger;
 	flex-grow: 4;
 	flex-shrink: 1;
 	flex-basis: 0;
 	text-overflow: clip;
 	padding-left: 5px;
 	padding-right: 5px;
+}
+
+.points {
+	font-size: larger;
 }
 
 @media screen and (max-width: 768px) {
@@ -217,6 +240,10 @@ header {
 	}
 
 	.team-results-container {
+		max-height: 50vh;
+	}
+
+	.time-results-container {
 		max-height: 50vh;
 	}
 

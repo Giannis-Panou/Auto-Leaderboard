@@ -46,7 +46,7 @@ function processCsv(file) {
 				);
 				return {
 					...player,
-					team: teamEntry ? teamEntry.team : 'Unknown',
+					team: teamEntry ? teamEntry.team : '',
 					source: file.name,
 				};
 			});
@@ -240,7 +240,7 @@ function updateLeaderboard(playersResults) {
 
 		leaderboard[username] = (leaderboard[username] || 0) + points;
 
-		if (team && team !== 'Unknown') {
+		if (team && team !== '') {
 			if (!teamScores[team]) teamScores[team] = [];
 			teamScores[team].push(points);
 		}
@@ -294,7 +294,7 @@ function displayLeaderboard() {
 					(teamObj) => teamObj.username === username
 				);
 
-				const team = teamEntry ? teamEntry.team : 'Unknown';
+				const team = teamEntry ? teamEntry.team : '';
 
 				return `<div class="leaderboard-entry list-group-item d-flex justify-content-between">
 							<div class="numberDiv">
@@ -350,6 +350,7 @@ function displayLeaderboard() {
 
 // Display Time leaderboard
 function displayTimeLeaderboard() {
+	const teamsFromStorage = JSON.parse(localStorage.getItem('teams')) || [];
 	const sorted = Object.entries(timeleaderboard).sort(
 		(a, b) => a[1].time - b[1].time
 	);
@@ -360,6 +361,12 @@ function displayTimeLeaderboard() {
 	if (sorted.length > 0) {
 		const leaderboardHtml = sorted
 			.map(([username, timeObj], index) => {
+				const teamEntry = teamsFromStorage.find(
+					(teamObj) => teamObj.username === username
+				);
+
+				const team = teamEntry ? teamEntry.team : '';
+
 				return `<div class="leaderboard-entry list-group-item d-flex justify-content-between">
 				<div class="numberDiv">
 					<span class="number">${index + 1}</span>
@@ -375,36 +382,6 @@ function displayTimeLeaderboard() {
 			.join('');
 
 		resultsContainer.innerHTML = `${leaderboardHtml}`;
-	}
-
-	const sortedTeamLeaderboard = Object.entries(teamLeaderboard).sort(
-		(a, b) => b[1] - a[1]
-	);
-
-	const resultsTeamContainer = document.querySelector(
-		'.team-results-container'
-	);
-	resultsTeamContainer.innerHTML = '';
-
-	if (sortedTeamLeaderboard.length > 0) {
-		const leaderboardTeamHtml = sortedTeamLeaderboard
-			.map(
-				([team, points], index) =>
-					`<div class="leaderboard-entry list-group-item d-flex justify-content-between">
-						<div class="numberDiv">
-							<span class="number">${index + 1}</span>
-						</div>
-						<div class="d-flex flex-grow-1 flex-row players">
-							<span>${team}</span>
-						</div>
-						<div class="d-flex flex-grow-1 justify-content-end points">
-							<span>${points}</span>
-						</div>
-					</div>`
-			)
-			.join('');
-
-		resultsTeamContainer.innerHTML = `${leaderboardTeamHtml}`;
 		podiumStyling();
 	}
 }
@@ -536,14 +513,17 @@ function podiumStyling() {
 
 		if (number == 1) {
 			div.style.backgroundColor = '#FFD700';
+			div.style.color = '#11121d';
 		}
 
 		if (number == 2) {
 			div.style.backgroundColor = '#C0C0C0';
+			div.style.color = '#11121d';
 		}
 
 		if (number == 3) {
 			div.style.backgroundColor = '#CD7F32';
+			div.style.color = '#11121d';
 		}
 	});
 }
