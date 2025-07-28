@@ -34,6 +34,12 @@ function processCsv(file) {
 			const teamsFromStorage = JSON.parse(localStorage.getItem('teams')) || [];
 			const jsonResults = csvToJson(csvResults, teamsFromStorage);
 
+			if (jsonResults.length === 0) {
+				throw new Error(
+					`No valid results could be parsed from ${file.name}. Please check the file format.`
+				);
+			}
+
 			const combinedResults = jsonResults.map((player) => {
 				const teamEntry = teamsFromStorage.find(
 					(team) => team.username === player.username
@@ -48,16 +54,13 @@ function processCsv(file) {
 			multipleResults[file.name] = combinedResults;
 			pendingFiles.delete(file.name);
 
-			console.log(
-				`Processed file: ${file.name}, ${combinedResults.length} results.`
-			);
-
 			if (pendingFiles.size === 0) {
 				processAllResults();
 			}
 		} catch (error) {
-			console.error(`Error processing file ${file.name}:`, error);
-			alert(`Error processing file ${file.name}. Please check the format.`);
+			alert(
+				`Error processing file ${file.name}: ${error.message}\n\nPlease check that the file has the correct format.`
+			);
 			pendingFiles.delete(file.name);
 			if (pendingFiles.size === 0) {
 				processAllResults();
@@ -133,34 +136,72 @@ function processTeamCsv(file) {
 function csvToJson(csv, teamsFromStorage = []) {
 	const lines = csv.split('\n').filter((line) => line.trim() !== '');
 
-	return lines.slice(1).flatMap((line) => {
-		const values = line.split(',');
+	if (lines.length < 2) {
+		return [];
+	}
 
-		if (values.length >= 3) {
-			const place = parseInt(values[0].trim(), 10);
-			const username = values[1].trim();
-			const timeStr = values[3].trim();
+	return lines.slice(1).flatMap((line, lineIndex) => {
+		const values = line.split(',').map((val) => val.trim());
 
-			const parts = timeStr.split(':');
-			if (parts.length !== 3) return [];
-
-			const [hours, minutes, seconds] = parts;
-			const [sec, ms] = seconds.split('.');
-			const totalMs =
-				parseInt(hours) * 3600000 +
-				parseInt(minutes) * 60000 +
-				parseInt(sec) * 1000 +
-				(parseInt(ms.slice(0, 3)) || 0); // Take only 3-digit milliseconds
-
-			return {
-				place,
-				username,
-				time: totalMs,
-				timeStr,
-			};
+		if (values.length < 4) {
+			return [];
 		}
 
-		return [];
+		const place = parseInt(values[0], 10);
+		if (isNaN(place)) {
+			return [];
+		}
+
+		const username = values[1];
+		if (!username) {
+			return [];
+		}
+
+		const timeStr = values[3];
+		if (!timeStr) {
+			return [];
+		}
+
+		let totalMs = 0;
+
+		try {
+			if (timeStr.includes(':')) {
+				const parts = timeStr.split(':');
+
+				if (parts.length === 3) {
+					const [hours, minutes, seconds] = parts;
+					const [sec, ms] = seconds.split(/[.,]/);
+					totalMs =
+						parseInt(hours) * 3600000 +
+						parseInt(minutes) * 60000 +
+						parseInt(sec) * 1000 +
+						(parseInt((ms || '0').padEnd(3, '0').slice(0, 3)) || 0);
+				} else if (parts.length === 2) {
+					const [minutes, seconds] = parts;
+					const [sec, ms] = seconds.split(/[.,]/);
+					totalMs =
+						parseInt(minutes) * 60000 +
+						parseInt(sec) * 1000 +
+						(parseInt((ms || '0').padEnd(3, '0').slice(0, 3)) || 0);
+				}
+			} else if (/^\d+[.,]\d+$/.test(timeStr)) {
+				const normalizedTime = timeStr.replace(',', '.');
+				totalMs = Math.round(parseFloat(normalizedTime) * 1000);
+			}
+
+			if (isNaN(totalMs) || totalMs <= 0) {
+				return [];
+			}
+		} catch (error) {
+			return [];
+		}
+
+		return {
+			place,
+			username,
+			time: totalMs,
+			timeStr,
+		};
 	});
 }
 
@@ -219,6 +260,7 @@ function updateLeaderboard(playersResults) {
 
 // Update leaderboard based on time
 function updateLeaderboardTimeBased(playersResults) {
+	timeleaderboard = {};
 	playersResults.forEach((player) => {
 		const { username, time, timeStr } = player;
 
@@ -452,6 +494,7 @@ function loadResults() {
 
 // Clear points but keep player names
 function clearPoints() {
+	timeleaderboard = {};
 	Object.keys(leaderboard).forEach((username) => {
 		leaderboard[username] = 0;
 	});
@@ -568,6 +611,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		.getElementById('load-demo-results-btn')
 		.addEventListener('click', () => {
 			multipleResults = {};
+			timeleaderboard = {};
 			pendingFiles.clear();
 
 			pendingFiles.add('demo_results.csv');
@@ -599,6 +643,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		.getElementById('load-demo-results-btn-2')
 		.addEventListener('click', () => {
 			multipleResults = {};
+			timeleaderboard = {};
 			pendingFiles.clear();
 
 			pendingFiles.add('demo_results_2.csv');
