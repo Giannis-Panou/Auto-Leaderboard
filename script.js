@@ -47,6 +47,7 @@ function processCsv(file) {
 				return {
 					...player,
 					team: teamEntry ? teamEntry.team : '',
+					car: player.car || '',
 					source: file.name,
 				};
 			});
@@ -95,7 +96,7 @@ function processAllResults() {
 		multipleFiles.sort((a, b) => a.time - b.time);
 
 		multipleFiles.forEach((player, index) => {
-			player.place = index + 1; // Assign place based on sorted order
+			player.place = index + 1;
 		});
 
 		console.log(
@@ -112,7 +113,7 @@ function processAllResults() {
 		console.log(`Processed files:\n${fileSummary}`);
 	}
 
-	multipleResults = {}; // Clear after processing
+	multipleResults = {};
 }
 
 // Process Team CSV
@@ -133,14 +134,14 @@ function processTeamCsv(file) {
 }
 
 // CSV to JSON
-function csvToJson(csv, teamsFromStorage = []) {
+function csvToJson(csv) {
 	const lines = csv.split('\n').filter((line) => line.trim() !== '');
 
 	if (lines.length < 2) {
 		return [];
 	}
 
-	return lines.slice(1).flatMap((line, lineIndex) => {
+	return lines.slice(1).flatMap((line) => {
 		const values = line.split(',').map((val) => val.trim());
 
 		if (values.length < 4) {
@@ -154,6 +155,11 @@ function csvToJson(csv, teamsFromStorage = []) {
 
 		const username = values[1];
 		if (!username) {
+			return [];
+		}
+
+		const car = values[2];
+		if (!car) {
 			return [];
 		}
 
@@ -199,13 +205,14 @@ function csvToJson(csv, teamsFromStorage = []) {
 		return {
 			place,
 			username,
+			car,
 			time: totalMs,
 			timeStr,
 		};
 	});
 }
 
-// CSV to Team JSON
+// Team CSV to JSON
 function teamCsvToJson(csv) {
 	const lines = csv.split('\n').filter((line) => line.trim() !== '');
 
@@ -235,7 +242,7 @@ function updateLeaderboard(playersResults) {
 	const teamScores = {};
 
 	playersResults.forEach((player) => {
-		const { username, place, team } = player;
+		const { place, username, team } = player;
 		const points = pointsArray[place - 1] || 0;
 
 		leaderboard[username] = (leaderboard[username] || 0) + points;
@@ -262,12 +269,13 @@ function updateLeaderboard(playersResults) {
 function updateLeaderboardTimeBased(playersResults) {
 	timeleaderboard = {};
 	playersResults.forEach((player) => {
-		const { username, time, timeStr } = player;
+		const { username, time, timeStr, car } = player;
 
 		if (!timeleaderboard[username] || time < timeleaderboard[username].time) {
 			timeleaderboard[username] = {
 				time,
 				timeStr,
+				car,
 			};
 		}
 	});
@@ -365,6 +373,8 @@ function displayTimeLeaderboard() {
 					(teamObj) => teamObj.username === username
 				);
 
+				const car = timeObj.car || '';
+
 				const team = teamEntry ? teamEntry.team : '';
 
 				return `<div class="leaderboard-entry list-group-item d-flex justify-content-between">
@@ -373,6 +383,9 @@ function displayTimeLeaderboard() {
 				</div>
 				<div class="players">
 					<span>${username}</span>
+				</div>
+				<div class="car">
+					<span>${timeObj.car}</span>
 				</div>
 				<div class="d-flex justify-content-end points">
 					<span>${trimToThreeDecimals(timeObj.timeStr)}</span>
@@ -532,6 +545,7 @@ function podiumStyling() {
 const windowSize = window.matchMedia('(max-width: 768px)');
 const leaderboardCol = document.getElementById('leaderboardCol');
 const navbar = document.querySelector('.navbar');
+const car = document.querySelector('.car');
 
 function mobileView() {
 	if (windowSize.matches) {
