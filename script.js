@@ -5,6 +5,12 @@ const pointsSystem = {
 	Rallycross: [20, 16, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1],
 	F1: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1],
 	F1_Sprint: [8, 7, 6, 5, 4, 3, 2, 1],
+	Crest: [
+		100, 98, 96, 94, 92, 90, 88, 86, 84, 82, 80, 78, 76, 74, 72, 70, 68, 66, 64,
+		62, 60, 58, 56, 54, 52, 50, 48, 46, 44, 42, 40, 38, 36, 34, 32, 30, 28, 26,
+		24, 22, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2,
+		1,
+	],
 };
 
 // Points Contributors per Team
@@ -14,8 +20,8 @@ const teamPointsSystem = {
 	Four: 4,
 };
 
-let selectedPointsSystem = 'WRC';
-let selectedTeamPointsSystem = 'Two';
+let selectedPointsSystem = 'Crest';
+let selectedTeamPointsSystem = 'Four';
 let leaderboard = {};
 let teamLeaderboard = {};
 let timeleaderboard = {};
@@ -221,7 +227,7 @@ function teamCsvToJson(csv) {
 		if (values.length >= 2) {
 			return {
 				username: values[1].trim(),
-				team: values[2].trim(),
+				team: values[5].trim(),
 			};
 		}
 		return [];
@@ -450,11 +456,11 @@ function loadResults() {
 	pendingFiles.clear();
 
 	const csvFiles = Array.from(files).filter(
-		(file) => file.name.endsWith('.csv') && !file.name.includes('_teams.csv')
+		(file) => file.name.endsWith('.csv') && !file.name.includes('teams.csv')
 	);
 
 	const teamFiles = Array.from(files).filter((file) =>
-		file.name.includes('_teams.csv')
+		file.name.includes('teams.csv')
 	);
 
 	teamFiles.forEach((file) => {
