@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import Menu from './Menu';
 import { DotsIcon, SlidersIcon } from './Icons';
 import { POINTS_SYSTEM_OPTIONS, TEAM_SCORER_OPTIONS } from '../lib/pointsSystems';
+import { DNF_OPTIONS } from '../lib/season';
 
 function SelectField({ label, value, options, onChange }) {
 	return (
@@ -19,63 +20,32 @@ function SelectField({ label, value, options, onChange }) {
 	);
 }
 
-export function Settings({ pointsSystem, onPointsSystemChange, teamScorers, onTeamScorersChange }) {
+export function Settings({ settings, onChange }) {
 	return (
 		<div className="settings">
 			<SelectField
 				label="Points system"
-				value={pointsSystem}
+				value={settings.pointsSystem}
 				options={POINTS_SYSTEM_OPTIONS}
-				onChange={onPointsSystemChange}
+				onChange={(v) => onChange('pointsSystem', v)}
 			/>
 			<SelectField
 				label="Team scorers"
-				value={teamScorers}
+				value={settings.teamScorers}
 				options={TEAM_SCORER_OPTIONS}
-				onChange={onTeamScorersChange}
+				onChange={(v) => onChange('teamScorers', v)}
+			/>
+			<SelectField
+				label="DNF cut-off"
+				value={settings.dnfCutoff}
+				options={DNF_OPTIONS}
+				onChange={(v) => onChange('dnfCutoff', Number(v))}
 			/>
 		</div>
 	);
 }
 
-function Menu({ label, icon, children }) {
-	const [open, setOpen] = useState(false);
-	const ref = useRef(null);
-
-	useEffect(() => {
-		if (!open) return;
-		const onPointerDown = (e) => {
-			if (!ref.current?.contains(e.target)) setOpen(false);
-		};
-		const onKeyDown = (e) => {
-			if (e.key === 'Escape') setOpen(false);
-		};
-		document.addEventListener('pointerdown', onPointerDown);
-		document.addEventListener('keydown', onKeyDown);
-		return () => {
-			document.removeEventListener('pointerdown', onPointerDown);
-			document.removeEventListener('keydown', onKeyDown);
-		};
-	}, [open]);
-
-	return (
-		<div className="menu" ref={ref}>
-			<button
-				type="button"
-				className="icon-btn"
-				aria-label={label}
-				aria-haspopup="true"
-				aria-expanded={open}
-				onClick={() => setOpen((o) => !o)}
-			>
-				{icon}
-			</button>
-			{open && <div className="menu-pop">{children(() => setOpen(false))}</div>}
-		</div>
-	);
-}
-
-export default function Header({ isMobile, settings, onClearPoints, onDeleteAll }) {
+export default function Header({ isMobile, settings, onRemoveAllRounds, onDeleteAll }) {
 	return (
 		<>
 			<header className="site-header">
@@ -99,10 +69,10 @@ export default function Header({ isMobile, settings, onClearPoints, onDeleteAll 
 										className="btn btn-danger-outline"
 										onClick={() => {
 											close();
-											onClearPoints();
+											onRemoveAllRounds();
 										}}
 									>
-										<span>Clear points</span>
+										<span>Remove all rounds</span>
 									</button>
 									<button
 										type="button"
@@ -112,7 +82,7 @@ export default function Header({ isMobile, settings, onClearPoints, onDeleteAll 
 											onDeleteAll();
 										}}
 									>
-										<span>Delete leaderboards</span>
+										<span>Delete all data</span>
 									</button>
 								</div>
 							</>

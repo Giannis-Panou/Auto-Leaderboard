@@ -15,6 +15,17 @@ export function formatGap(ms) {
 	return `+${formatTime(ms)}`;
 }
 
+export const formatPace = (pct) => `${pct.toFixed(1)}%`;
+
+export function formatDateTime(iso) {
+	return new Date(iso).toLocaleString(undefined, {
+		day: 'numeric',
+		month: 'short',
+		hour: '2-digit',
+		minute: '2-digit',
+	});
+}
+
 export function prefersReducedMotion() {
 	return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
 }

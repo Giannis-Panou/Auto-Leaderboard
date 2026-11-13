@@ -1,147 +1,175 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Header, { Settings } from './components/Header';
 import UploadBar from './components/UploadBar';
+import FilterBar from './components/FilterBar';
 import Tabs from './components/Tabs';
-import { FlagIcon, GridIcon, TrophyIcon } from './components/Icons';
+import SeasonTable from './components/SeasonTable';
+import DriverDrawer from './components/DriverDrawer';
+import { Toasts, useConfirm, useToasts } from './components/Feedback';
+import { FlagIcon, GridIcon, TableIcon, TrophyIcon } from './components/Icons';
 import { DriverStandings, ResultsPanel, TeamStandings } from './components/Leaderboards';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useMediaQuery } from './hooks/useMediaQuery';
 import { csvToJson, isTeamsFile, teamCsvToJson } from './lib/csv';
-import {
-	addCategoryPoints,
-	addPoints,
-	buildCategories,
-	buildTimeLeaderboard,
-	combineResults,
-	enrichResults,
-	scoreCategories,
-	scoreEvent,
-	zeroCategoryPoints,
-	zeroPoints,
-} from './lib/leaderboard';
-import { CATEGORIES } from './lib/pointsSystems';
-
 import { DEMO_TEAMS_FILE, DEMOS } from './lib/demos';
+import { POINTS_SYSTEM_OPTIONS } from './lib/pointsSystems';
+import { CATEGORIES } from './lib/pointsSystems';
+import { computeSeason, DEFAULT_SETTINGS, mergeRoundFiles, roundFingerprint, scoreRound } from './lib/season';
 
 const CATEGORY_TABS = CATEGORIES.map((c) => ({ value: c, label: c }));
 const RESULT_TABS = [{ value: 'OVERALL', label: 'Overall' }, ...CATEGORY_TABS];
+const DESKTOP_VIEWS = [
+	{ value: 'event', label: 'Event' },
+	{ value: 'season', label: 'Season' },
+];
 const MOBILE_VIEWS = [
 	{ value: 'event', label: 'Event', icon: <FlagIcon /> },
 	{ value: 'categories', label: 'Categories', icon: <GridIcon /> },
 	{ value: 'standings', label: 'Standings', icon: <TrophyIcon /> },
+	{ value: 'season', label: 'Season', icon: <TableIcon /> },
+];
+
+// Storage keys from before rounds were kept individually.
+const LEGACY_KEYS = [
+	'leaderboard',
+	'teamLeaderboard',
+	'timeLeaderboard',
+	'categories',
+	'prevLeaderboard',
+	'prevTeamLeaderboard',
+	'categoryStandings',
+	'prevCategoryStandings',
 ];
 
 const isPlainObject = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
+const newId = () => globalThis.crypto?.randomUUID?.() ?? `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
 
 export default function App() {
 	const isMobile = useMediaQuery('(max-width: 768px)');
+	const { toasts, notify, dismiss } = useToasts();
+	const [confirm, confirmDialog] = useConfirm();
 
-	const [pointsSystem, setPointsSystem] = useState('WRC');
-	const [teamScorers, setTeamScorers] = useState('Two');
-
+	// ---- Persisted data: teams, every loaded round, settings ----------------
 	const [teams, setTeams] = useLocalStorage('teams', [], Array.isArray);
-	const [leaderboard, setLeaderboard] = useLocalStorage('leaderboard', {}, isPlainObject);
-	const [teamLeaderboard, setTeamLeaderboard] = useLocalStorage('teamLeaderboard', {}, isPlainObject);
-	const [timeLeaderboard, setTimeLeaderboard] = useLocalStorage('timeLeaderboard', {}, isPlainObject);
-	const [categories, setCategories] = useLocalStorage('categories', {}, isPlainObject);
-	// Standings before the latest round, for the ▲/▼ position arrows.
-	const [prevLeaderboard, setPrevLeaderboard] = useLocalStorage('prevLeaderboard', {}, isPlainObject);
-	const [prevTeamLeaderboard, setPrevTeamLeaderboard] = useLocalStorage('prevTeamLeaderboard', {}, isPlainObject);
-	// Independent per-category driver points: { CA1: { drivers: {...} }, ... }
-	const [categoryStandings, setCategoryStandings] = useLocalStorage('categoryStandings', {}, isPlainObject);
-	const [prevCategoryStandings, setPrevCategoryStandings] = useLocalStorage('prevCategoryStandings', {}, isPlainObject);
+	const [rounds, setRounds] = useLocalStorage('rounds', [], Array.isArray);
+	const [storedSettings, setStoredSettings] = useLocalStorage('settings', DEFAULT_SETTINGS, isPlainObject);
+	const settings = { ...DEFAULT_SETTINGS, ...storedSettings };
+	const updateSetting = (key, value) => setStoredSettings((s) => ({ ...DEFAULT_SETTINGS, ...s, [key]: value }));
 
-	// UI state
+	useEffect(() => {
+		try {
+			LEGACY_KEYS.forEach((key) => localStorage.removeItem(key));
+		} catch {
+			// storage unavailable
+		}
+	}, []);
+
+	// ---- UI state ------------------------------------------------------------
 	const [loadId, setLoadId] = useState(0); // bumps on each load to replay the row reveal
+	const [selectedRoundId, setSelectedRoundId] = useState(null); // null = latest
 	const [resultsTab, setResultsTab] = useState('OVERALL');
 	const [categoryTab, setCategoryTab] = useState('CA1');
+	const [desktopView, setDesktopView] = useState('event');
 	const [mobileView, setMobileView] = useState('event');
 	const [uploadOpen, setUploadOpen] = useState(false);
+	const [search, setSearch] = useState('');
+	const [platform, setPlatform] = useState('ALL');
+	const [selectedDriver, setSelectedDriver] = useState(null);
 
-	const teamsByUser = useMemo(
-		() => Object.fromEntries(teams.map((t) => [t.username, t])),
-		[teams]
+	// ---- Derived data ----------------------------------------------------------
+	const teamsByUser = useMemo(() => Object.fromEntries(teams.map((t) => [t.username, t])), [teams]);
+
+	const season = useMemo(
+		() => computeSeason(rounds, teamsByUser, settings),
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[rounds, teamsByUser, settings.pointsSystem, settings.teamScorers, settings.dnfCutoff]
 	);
 
-	const overallEntries = useMemo(
-		() =>
-			Object.entries(timeLeaderboard)
-				.map(([username, entry]) => ({ key: username, username, ...entry }))
-				.sort((a, b) => a.time - b.time),
-		[timeLeaderboard]
-	);
+	// Latest known platform per driver (results file first, teams file as fallback).
+	const platformOf = useMemo(() => {
+		const map = Object.fromEntries(teams.filter((t) => t.platform).map((t) => [t.username, t.platform]));
+		rounds.forEach((r) => r.results.forEach((e) => e.platform && (map[e.username] = e.platform)));
+		return map;
+	}, [teams, rounds]);
 
-	const categoryEntries = (cat) =>
-		(Array.isArray(categories[cat]) ? categories[cat] : []).map((p, i) => ({
-			key: `${p.source}-${p.username}-${i}`,
-			...p,
-		}));
+	const filter = useMemo(() => {
+		const q = search.trim().toLowerCase();
+		const text = (value) => !q || (value || '').toLowerCase().includes(q);
+		return {
+			matchesDriver: (name, team, driverPlatform) =>
+				(text(name) || (q && text(team))) && (platform === 'ALL' || driverPlatform === platform),
+			matchesTeam: (team) => text(team),
+		};
+	}, [search, platform]);
 
-	// Load teams (optional) and one or more result files, then update every board.
-	const ingest = async ({ teamTexts = [], resultFiles = [] }) => {
+	const latestRound = season.rounds.at(-1);
+	const eventRound = season.rounds.find((r) => r.id === selectedRoundId) || latestRound;
+	const pointsLabel = POINTS_SYSTEM_OPTIONS.find((o) => o.value === settings.pointsSystem)?.label;
+	const exportSubtitle = latestRound ? `After ${latestRound.name} · ${pointsLabel} points` : '';
+
+	// ---- Loading ---------------------------------------------------------------
+	// Load teams (optional) and a round made of one or more result files.
+	const ingest = async ({ teamTexts = [], resultFiles = [], roundName = '' }) => {
 		let currentTeams = teams;
-
 		teamTexts.forEach((text) => {
-			try {
-				currentTeams = teamCsvToJson(text);
-			} catch (error) {
-				console.error('Error processing Teams CSV:', error);
-			}
+			const parsed = teamCsvToJson(text);
+			if (parsed.length) currentTeams = parsed;
+			else notify('The teams file has no drivers in it — check the format.', 'error');
 		});
 		if (currentTeams !== teams) setTeams(currentTeams);
-
 		if (resultFiles.length === 0) return;
 
-		const parsedFiles = resultFiles.flatMap(({ name, text }) => {
+		const parsedFiles = [];
+		resultFiles.forEach(({ name, text }) => {
 			const rows = csvToJson(text);
-			if (rows.length === 0) {
-				alert(
-					`Error processing file ${name}: no valid results could be parsed.\n\nPlease check that the file has the correct format.`
-				);
-				return [];
-			}
-			return [enrichResults(rows, currentTeams, name)];
+			if (rows.length) parsedFiles.push({ name, rows });
+			else notify(`${name}: no valid results found — check the file format.`, 'error');
 		});
+		if (parsedFiles.length === 0) return;
 
-		if (parsedFiles.length === 0) {
-			alert('No valid results files found.');
+		const results = mergeRoundFiles(parsedFiles);
+		const fingerprint = roundFingerprint(results);
+		const existing = rounds.find((r) => r.fingerprint === fingerprint);
+		if (existing) {
+			notify(`These results are already loaded as “${existing.name}”.`, 'warning');
 			return;
 		}
 
-		const results = combineResults(parsedFiles);
-		const { driverPoints, teamPoints } = scoreEvent(results, pointsSystem, teamScorers);
-		const categoryScores = scoreCategories(results, pointsSystem);
-
-		setPrevLeaderboard(leaderboard);
-		setPrevTeamLeaderboard(teamLeaderboard);
-		setPrevCategoryStandings(categoryStandings);
-		setLeaderboard((prev) => addPoints(prev, driverPoints));
-		setTeamLeaderboard((prev) => addPoints(prev, teamPoints));
-		setCategoryStandings((prev) => addCategoryPoints(prev, categoryScores));
-		setTimeLeaderboard(buildTimeLeaderboard(results));
-		setCategories(buildCategories(results));
+		const name = roundName.trim() || `Round ${rounds.length + 1}`;
+		const round = {
+			id: newId(),
+			name,
+			loadedAt: new Date().toISOString(),
+			files: parsedFiles.map((f) => f.name),
+			fingerprint,
+			results,
+		};
+		setRounds((prev) => [...prev, round]);
+		setSelectedRoundId(null);
 		setLoadId((n) => n + 1);
 		setUploadOpen(false);
+
+		const known = Object.fromEntries(currentTeams.map((t) => [t.username, t]));
+		const unknown = results.filter((r) => !known[r.username]).length;
+		const dnfs = scoreRound(round, known, settings).entries.filter((e) => e.dnf).length;
+		notify(
+			[`${name}: ${results.length} drivers loaded`, dnfs && `${dnfs} DNF`, unknown && `${unknown} not in teams.csv`]
+				.filter(Boolean)
+				.join(' · '),
+			'success'
+		);
 	};
 
-	const handleUpload = async (files) => {
-		if (files.length === 0) {
-			alert('Please select a file to upload.');
-			return;
-		}
-
+	const handleUpload = async (files, roundName) => {
 		const teamFiles = files.filter((f) => isTeamsFile(f.name));
-		const csvFiles = files.filter((f) => f.name.endsWith('.csv') && !isTeamsFile(f.name));
+		const csvFiles = files.filter((f) => !isTeamsFile(f.name));
 
 		const teamTexts = await Promise.all(teamFiles.map((f) => f.text()));
-		const resultFiles = await Promise.all(
-			csvFiles.map(async (f) => ({ name: f.name, text: await f.text() }))
-		);
+		const resultFiles = await Promise.all(csvFiles.map(async (f) => ({ name: f.name, text: await f.text() })));
+		await ingest({ teamTexts, resultFiles, roundName });
 
-		await ingest({ teamTexts, resultFiles });
-
-		if (csvFiles.length === 0) {
-			alert(teamFiles.length > 0 ? 'Teams loaded successfully.' : 'Please select a valid CSV file.');
+		if (csvFiles.length === 0 && teamTexts.length) {
+			notify(`Teams loaded: ${teamCsvToJson(teamTexts.at(-1)).length} drivers.`, 'success');
 		}
 	};
 
@@ -159,76 +187,116 @@ export default function App() {
 			]);
 			await ingest({
 				teamTexts: [teamsText],
-				resultFiles: demo.files.map((file, i) => ({
-					name: `${demo.folder}/${file}`,
-					text: resultTexts[i],
-				})),
+				resultFiles: demo.files.map((file, i) => ({ name: file, text: resultTexts[i] })),
+				roundName: demo.roundName,
 			});
 		} catch (error) {
 			console.error('Failed to load demo results:', error);
-			alert('Could not load demo results. Please try again.');
+			notify('Could not load the demo results. Please try again.', 'error');
 		}
 	};
 
-	const handleClearPoints = () => {
-		if (!confirm('Are you sure you want to clear all points?')) return;
-		setLeaderboard((prev) => zeroPoints(prev));
-		setTeamLeaderboard((prev) => zeroPoints(prev));
-		setCategoryStandings((prev) => zeroCategoryPoints(prev));
-		setPrevLeaderboard({});
-		setPrevTeamLeaderboard({});
-		setPrevCategoryStandings({});
-		setTimeLeaderboard({});
-		setCategories({});
+	// ---- Removing --------------------------------------------------------------
+	const handleRemoveRound = async (round) => {
+		const ok = await confirm({
+			title: 'Remove round?',
+			message: `“${round.name}” and the points it awarded will be removed from the season.`,
+			confirmLabel: 'Remove round',
+		});
+		if (!ok) return;
+		setRounds((prev) => prev.filter((r) => r.id !== round.id));
+		if (selectedRoundId === round.id) setSelectedRoundId(null);
+		notify(`${round.name} removed.`, 'info');
 	};
 
-	const handleDeleteAll = () => {
-		if (!confirm('Are you sure you want to delete all data?')) return;
-		setLeaderboard({});
-		setTeamLeaderboard({});
-		setCategoryStandings({});
-		setPrevLeaderboard({});
-		setPrevTeamLeaderboard({});
-		setPrevCategoryStandings({});
-		setTimeLeaderboard({});
-		setCategories({});
+	const handleRemoveAllRounds = async () => {
+		if (rounds.length === 0) return notify('There are no rounds to remove.', 'info');
+		const ok = await confirm({
+			title: 'Remove all rounds?',
+			message: `All ${rounds.length} rounds and every point will be cleared. The teams list is kept.`,
+			confirmLabel: 'Remove all rounds',
+		});
+		if (!ok) return;
+		setRounds([]);
+		setSelectedRoundId(null);
+		notify('All rounds removed.', 'info');
 	};
 
-	const settings = (
-		<Settings
-			pointsSystem={pointsSystem}
-			onPointsSystemChange={setPointsSystem}
-			teamScorers={teamScorers}
-			onTeamScorersChange={setTeamScorers}
+	const handleDeleteAll = async () => {
+		const ok = await confirm({
+			title: 'Delete all data?',
+			message: 'Every round and the teams list will be deleted from this browser. This can’t be undone.',
+			confirmLabel: 'Delete everything',
+		});
+		if (!ok) return;
+		setRounds([]);
+		setTeams([]);
+		setSelectedRoundId(null);
+		notify('All data deleted.', 'info');
+	};
+
+	const closeDriver = useCallback(() => setSelectedDriver(null), []);
+
+	// ---- Pieces ----------------------------------------------------------------
+	const settingsEl = <Settings settings={settings} onChange={updateSetting} />;
+	const uploadBar = <UploadBar onUpload={handleUpload} demos={DEMOS} onLoadDemo={handleLoadDemo} />;
+	const filterBar = (
+		<FilterBar
+			views={isMobile ? undefined : DESKTOP_VIEWS}
+			view={desktopView}
+			onViewChange={setDesktopView}
+			search={search}
+			onSearch={setSearch}
+			platform={platform}
+			onPlatform={setPlatform}
+			lastRound={latestRound}
+			roundCount={rounds.length}
 		/>
 	);
 
-	const uploadBar = (
-		<UploadBar onUpload={handleUpload} demos={DEMOS} onLoadDemo={handleLoadDemo} />
-	);
+	const resultsProps = {
+		round: eventRound,
+		rounds: season.rounds,
+		onRoundChange: setSelectedRoundId,
+		teamsByUser,
+		filter,
+		onSelectDriver: setSelectedDriver,
+	};
+	const roundTitle = (suffix) => (eventRound ? `${eventRound.name} · ${suffix}` : suffix);
 
 	const standings = (
 		<>
 			<DriverStandings
-				leaderboard={leaderboard}
-				prevLeaderboard={prevLeaderboard}
-				categoryStandings={categoryStandings}
-				prevCategoryStandings={prevCategoryStandings}
+				season={season}
 				teamsByUser={teamsByUser}
+				platformOf={platformOf}
+				filter={filter}
+				subtitle={exportSubtitle}
+				onSelectDriver={setSelectedDriver}
+				notify={notify}
 			/>
-			<TeamStandings
-				teamLeaderboard={teamLeaderboard}
-				prevTeamLeaderboard={prevTeamLeaderboard}
-			/>
+			<TeamStandings season={season} filter={filter} subtitle={exportSubtitle} notify={notify} />
 		</>
+	);
+
+	const seasonTable = (
+		<SeasonTable
+			season={season}
+			teamsByUser={teamsByUser}
+			platformOf={platformOf}
+			filter={filter}
+			onSelectDriver={setSelectedDriver}
+			onRemoveRound={handleRemoveRound}
+			notify={notify}
+		/>
 	);
 
 	return (
 		<div className="app">
 			<Header
 				isMobile={isMobile}
-				settings={settings}
-				onClearPoints={handleClearPoints}
+				settings={settingsEl}
+				onRemoveAllRounds={handleRemoveAllRounds}
 				onDeleteAll={handleDeleteAll}
 			/>
 
@@ -243,34 +311,23 @@ export default function App() {
 						<span>{uploadOpen ? 'Close' : '+ Load results'}</span>
 					</button>
 					{uploadOpen && uploadBar}
+					{filterBar}
 
 					<main className="mobile-view" key={mobileView}>
 						{mobileView === 'event' && (
-							<ResultsPanel
-								title="Overall time"
-								entries={overallEntries}
-								showChip
-								teamsByUser={teamsByUser}
-								listKey={`overall-${loadId}`}
-							/>
+							<ResultsPanel {...resultsProps} title={roundTitle('Overall')} listKey={`overall-${loadId}-${eventRound?.id}`} />
 						)}
 						{mobileView === 'categories' && (
 							<ResultsPanel
-								title={`${categoryTab} results`}
-								tabs={
-									<Tabs
-										items={CATEGORY_TABS}
-										value={categoryTab}
-										onChange={setCategoryTab}
-										label="Category"
-									/>
-								}
-								entries={categoryEntries(categoryTab)}
-								teamsByUser={teamsByUser}
-								listKey={`${categoryTab}-${loadId}`}
+								{...resultsProps}
+								title={roundTitle(categoryTab)}
+								category={categoryTab}
+								tabs={<Tabs items={CATEGORY_TABS} value={categoryTab} onChange={setCategoryTab} label="Category" />}
+								listKey={`${categoryTab}-${loadId}-${eventRound?.id}`}
 							/>
 						)}
 						{mobileView === 'standings' && standings}
+						{mobileView === 'season' && seasonTable}
 					</main>
 
 					<nav className="tabbar" aria-label="Sections">
@@ -288,28 +345,35 @@ export default function App() {
 			) : (
 				<>
 					{uploadBar}
-					<main className="board-grid">
-						<ResultsPanel
-							title={resultsTab === 'OVERALL' ? 'Overall time' : `${resultsTab} results`}
-							tabs={
-								<Tabs
-									items={RESULT_TABS}
-									value={resultsTab}
-									onChange={setResultsTab}
-									label="Results view"
-								/>
-							}
-							entries={
-								resultsTab === 'OVERALL' ? overallEntries : categoryEntries(resultsTab)
-							}
-							showChip={resultsTab === 'OVERALL'}
-							teamsByUser={teamsByUser}
-							listKey={`${resultsTab}-${loadId}`}
-						/>
-						<div className="standings">{standings}</div>
-					</main>
+					{filterBar}
+					{desktopView === 'event' ? (
+						<main className="board-grid">
+							<ResultsPanel
+								{...resultsProps}
+								title={roundTitle(resultsTab === 'OVERALL' ? 'Overall' : resultsTab)}
+								category={resultsTab === 'OVERALL' ? undefined : resultsTab}
+								tabs={<Tabs items={RESULT_TABS} value={resultsTab} onChange={setResultsTab} label="Results view" />}
+								listKey={`${resultsTab}-${loadId}-${eventRound?.id}`}
+							/>
+							<div className="standings">{standings}</div>
+						</main>
+					) : (
+						<main className="season-view">{seasonTable}</main>
+					)}
 				</>
 			)}
+
+			{selectedDriver && (
+				<DriverDrawer
+					username={selectedDriver}
+					season={season}
+					teamsByUser={teamsByUser}
+					platform={platformOf[selectedDriver]}
+					onClose={closeDriver}
+				/>
+			)}
+			{confirmDialog}
+			<Toasts toasts={toasts} onDismiss={dismiss} />
 		</div>
 	);
 }

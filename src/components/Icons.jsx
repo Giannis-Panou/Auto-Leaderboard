@@ -57,3 +57,29 @@ export const TrophyIcon = (props) => (
 		<path d="M8 21h8M12 16v5M7 4h10v5a5 5 0 0 1-10 0V4zM17 6h3v1a4 4 0 0 1-3 4M7 6H4v1a4 4 0 0 0 3 4" />
 	</Svg>
 );
+
+export const TableIcon = (props) => (
+	<Svg {...props}>
+		<rect x="3" y="4" width="18" height="16" />
+		<path d="M3 10h18M3 15h18M9 4v16" />
+	</Svg>
+);
+
+export const DownloadIcon = (props) => (
+	<Svg {...props}>
+		<path d="M12 4v11M7 10l5 5 5-5M5 20h14" />
+	</Svg>
+);
+
+export const CloseIcon = (props) => (
+	<Svg {...props}>
+		<path d="M6 6l12 12M18 6L6 18" />
+	</Svg>
+);
+
+export const SearchIcon = (props) => (
+	<Svg {...props}>
+		<circle cx="11" cy="11" r="6" />
+		<path d="M20 20l-4.5-4.5" />
+	</Svg>
+);

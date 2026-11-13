@@ -1,118 +1,190 @@
 import { useRef, useState } from 'react';
-import { CountUp, Delta, List, Panel, Row } from './Leaderboard';
+import { CountUp, Delta, deltaText, List, Panel, Row } from './Leaderboard';
+import ExportMenu from './ExportMenu';
 import Tabs from './Tabs';
-import { CATEGORIES } from '../lib/pointsSystems';
 import { useFlip } from '../hooks/useFlip';
-import { formatGap, formatTime } from '../lib/format';
-import { isRealTeam, rankMap, sortByPointsDesc } from '../lib/leaderboard';
+import { formatGap, formatPace, formatTime } from '../lib/format';
+import { isRealTeam, rankMap, sortByPointsDesc } from '../lib/season';
+import { CATEGORIES } from '../lib/pointsSystems';
 
-// Event results (overall or one category): leader shows full time, everyone
-// else shows the gap to the leader.
-export function ResultsPanel({ title, tabs, entries, showChip, teamsByUser, listKey }) {
-	const leaderTime = entries[0]?.time;
+const NO_MATCHES = { emptyTitle: 'No matches', emptyMessage: 'No drivers match the current search or platform filter.' };
+
+function RoundSelect({ rounds, value, onChange }) {
+	if (rounds.length < 2) return null;
+	return (
+		<label className="round-select">
+			<span className="visually-hidden">Round</span>
+			<span className="select-wrap">
+				<select value={value} onChange={(e) => onChange(e.target.value)}>
+					{rounds.map((r) => (
+						<option key={r.id} value={r.id}>
+							{r.name}
+						</option>
+					))}
+				</select>
+			</span>
+		</label>
+	);
+}
+
+// One round's results (overall, or a category). Positions only count
+// finishers; the leader shows the full time and everyone else the gap.
+export function ResultsPanel({
+	title,
+	tabs,
+	round,
+	rounds,
+	onRoundChange,
+	category,
+	teamsByUser,
+	filter,
+	onSelectDriver,
+	listKey,
+}) {
+	const all = round ? round.entries.filter((e) => !category || e.category === category) : [];
+	const placeOf = (e) => (category ? e.categoryPlace : e.place);
+	const leaderTime = all.find((e) => !e.dnf)?.time;
+	const visible = all.filter((e) => filter.matchesDriver(e.username, e.team, e.platform));
+	const filtered = visible.length !== all.length;
 
 	return (
-		<Panel title={title} count={entries.length} tabs={tabs} className="results-panel">
-			<List key={listKey}>
-				{entries.map((entry, index) => {
-					const isLeader = index === 0;
-					const chip = showChip
-						? entry.category || teamsByUser[entry.username]?.category
-						: undefined;
-					return (
-						<Row
-							key={entry.key}
-							index={index}
-							rank={index + 1}
-							name={entry.username}
-							sub={entry.car}
-							chip={chip}
-							value={isLeader ? formatTime(entry.time) : formatGap(entry.time - leaderTime)}
-							valueTitle={formatTime(entry.time)}
-							muted={!isLeader}
-						/>
-					);
-				})}
+		<Panel
+			title={title}
+			count={all.length}
+			tabs={tabs}
+			className="results-panel"
+			actions={round && <RoundSelect rounds={rounds} value={round.id} onChange={onRoundChange} />}
+		>
+			<List key={listKey} {...(filtered && NO_MATCHES)}>
+				{visible.map((entry, index) => (
+					<Row
+						key={entry.username}
+						index={index}
+						rank={entry.dnf ? '–' : placeOf(entry)}
+						name={entry.username}
+						nat={teamsByUser[entry.username]?.nat}
+						platform={entry.platform}
+						onSelect={onSelectDriver}
+						sub={entry.car}
+						chip={category ? undefined : entry.category}
+						dnf={entry.dnf}
+						value={
+							entry.dnf
+								? 'DNF'
+								: entry.time === leaderTime
+									? formatTime(entry.time)
+									: formatGap(entry.time - leaderTime)
+						}
+						valueTitle={`${formatTime(entry.time)} · ${formatPace(entry.pct)} of winner`}
+						muted={entry.time !== leaderTime}
+					/>
+				))}
 			</List>
 		</Panel>
 	);
 }
 
-const STANDINGS_TABS = [
-	{ value: 'ALL', label: 'All' },
-	...CATEGORIES.map((c) => ({ value: c, label: c })),
-];
-
-function StandingsPanel({ title, board, prevBoard, renderDetails, tabs, listKey }) {
+function StandingsPanel({ title, exportTitle, subtitle, board, prevBoard, rowProps, matches, tabs, listKey, notify }) {
 	const listRef = useRef(null);
 	useFlip(listRef, listKey);
 
-	const sorted = sortByPointsDesc(board);
-	const prevRanks = rankMap(prevBoard);
+	const prevRanks = prevBoard ? rankMap(prevBoard) : {};
+	const rows = sortByPointsDesc(board).map(([name, points], i) => {
+		const prevRank = prevRanks[name];
+		return { name, points, rank: i + 1, change: prevRank ? prevRank - (i + 1) : undefined };
+	});
+	const visible = rows.filter((r) => matches(r.name));
+
+	const imageRows = () =>
+		visible.map((r) => {
+			const props = rowProps(r.name);
+			return { rank: r.rank, name: r.name, sub: props.sub, chip: props.chip, value: r.points, delta: deltaText(r.change) };
+		});
 
 	return (
-		<Panel title={title} count={sorted.length} tabs={tabs} className="standings-panel">
-			<List key={listKey} listRef={listRef}>
-				{sorted.map(([name, points], index) => {
-					const prevRank = prevRanks[name];
-					return (
-						<Row
-							key={name}
-							index={index}
-							rank={index + 1}
-							name={name}
-							{...renderDetails(name)}
-							value={<CountUp value={points} />}
-							delta={<Delta change={prevRank ? prevRank - (index + 1) : undefined} />}
-						/>
-					);
-				})}
+		<Panel
+			title={title}
+			count={rows.length}
+			tabs={tabs}
+			className="standings-panel"
+			actions={
+				rows.length > 0 && (
+					<ExportMenu
+						title={exportTitle}
+						notify={notify}
+						getImage={() => ({ title: exportTitle, subtitle, rows: imageRows() })}
+						getCsv={() => [
+							['Pos', 'Name', 'Team', 'Category', 'Points', 'Change'],
+							...imageRows().map((r) => [r.rank, r.name, r.sub || '', r.chip || '', r.value, r.delta]),
+						]}
+					/>
+				)
+			}
+		>
+			<List key={listKey} listRef={listRef} {...(visible.length !== rows.length && NO_MATCHES)}>
+				{visible.map((r, index) => (
+					<Row
+						key={r.name}
+						index={index}
+						rank={r.rank}
+						name={r.name}
+						{...rowProps(r.name)}
+						value={<CountUp value={r.points} />}
+						delta={<Delta change={r.change} />}
+					/>
+				))}
 			</List>
 		</Panel>
 	);
 }
 
-// Driver standings with All / CA1–CA4 tabs. "All" is the overall points
-// table; each category tab is that category's own table, scored on
-// finishing positions within the category.
-export function DriverStandings({ leaderboard, prevLeaderboard, categoryStandings, prevCategoryStandings, teamsByUser }) {
+const STANDINGS_TABS = [{ value: 'ALL', label: 'All' }, ...CATEGORIES.map((c) => ({ value: c, label: c }))];
+
+// Driver standings: "All" is the overall table; each category tab is that
+// category's own table, scored on finishing positions within it.
+export function DriverStandings({ season, teamsByUser, platformOf, filter, subtitle, onSelectDriver, notify }) {
 	const [category, setCategory] = useState('ALL');
 	const isAll = category === 'ALL';
+	const { standings, previous } = season;
+	const title = isAll ? 'Driver standings' : `${category} driver standings`;
 
 	return (
 		<StandingsPanel
-			title={isAll ? 'Driver standings' : `${category} driver standings`}
-			board={isAll ? leaderboard : categoryStandings[category]?.drivers || {}}
-			prevBoard={isAll ? prevLeaderboard : prevCategoryStandings[category]?.drivers || {}}
+			title={title}
+			exportTitle={title}
+			subtitle={subtitle}
+			board={isAll ? standings.drivers : standings.categories[category] || {}}
+			prevBoard={previous && (isAll ? previous.drivers : previous.categories[category] || {})}
 			listKey={category}
-			tabs={
-				<Tabs
-					items={STANDINGS_TABS}
-					value={category}
-					onChange={setCategory}
-					label="Driver standings category"
-				/>
-			}
-			renderDetails={(username) => ({
-				sub: teamsByUser[username]?.team,
-				chip: isAll ? teamsByUser[username]?.category : undefined,
+			notify={notify}
+			matches={(name) => filter.matchesDriver(name, teamsByUser[name]?.team, platformOf[name])}
+			tabs={<Tabs items={STANDINGS_TABS} value={category} onChange={setCategory} label="Driver standings category" />}
+			rowProps={(name) => ({
+				nat: teamsByUser[name]?.nat,
+				platform: platformOf[name],
+				onSelect: onSelectDriver,
+				sub: teamsByUser[name]?.team,
+				chip: isAll ? teamsByUser[name]?.category : undefined,
 			})}
 		/>
 	);
 }
 
-// Team standings come from the overall results only. Privateers are filtered
-// here as well, so boards saved before that rule existed display correctly.
-export function TeamStandings({ teamLeaderboard, prevTeamLeaderboard }) {
-	const onlyTeams = (board) =>
-		Object.fromEntries(Object.entries(board).filter(([team]) => isRealTeam(team)));
+// Team standings come from the overall results only; Privateers are excluded.
+export function TeamStandings({ season, filter, subtitle, notify }) {
+	const onlyTeams = (board) => Object.fromEntries(Object.entries(board).filter(([team]) => isRealTeam(team)));
+	const { standings, previous } = season;
 
 	return (
 		<StandingsPanel
 			title="Team standings"
-			board={onlyTeams(teamLeaderboard)}
-			prevBoard={onlyTeams(prevTeamLeaderboard)}
-			renderDetails={() => ({})}
+			exportTitle="Team standings"
+			subtitle={subtitle}
+			board={onlyTeams(standings.teams)}
+			prevBoard={previous && onlyTeams(previous.teams)}
+			notify={notify}
+			matches={filter.matchesTeam}
+			rowProps={() => ({})}
 		/>
 	);
 }

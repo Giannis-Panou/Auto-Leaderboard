@@ -1,18 +1,20 @@
 import { useRef, useState } from 'react';
 import { UploadIcon } from './Icons';
 
-const ACCEPTED = /\.(csv|json)$/i;
+const ACCEPTED = /\.csv$/i;
 
 export default function UploadBar({ onUpload, demos, onLoadDemo }) {
 	const inputRef = useRef(null);
 	const [files, setFiles] = useState([]);
 	const [dragging, setDragging] = useState(false);
+	const [roundName, setRoundName] = useState('');
 
 	const pickFiles = (list) => setFiles(Array.from(list).filter((f) => ACCEPTED.test(f.name)));
 
 	const submit = () => {
-		onUpload(files);
+		onUpload(files, roundName);
 		setFiles([]);
+		setRoundName('');
 		if (inputRef.current) inputRef.current.value = '';
 	};
 
@@ -42,7 +44,7 @@ export default function UploadBar({ onUpload, demos, onLoadDemo }) {
 				<input
 					ref={inputRef}
 					type="file"
-					accept=".csv,.json"
+					accept=".csv"
 					multiple
 					className="visually-hidden"
 					onChange={(e) => pickFiles(e.target.files)}
@@ -62,6 +64,18 @@ export default function UploadBar({ onUpload, demos, onLoadDemo }) {
 						</>
 					)}
 				</span>
+			</label>
+
+			<label className="field round-name-field">
+				<span className="field-label">Round name</span>
+				<input
+					type="text"
+					className="text-input"
+					placeholder="e.g. Round 3 · Kenya"
+					value={roundName}
+					onChange={(e) => setRoundName(e.target.value)}
+					onKeyDown={(e) => e.key === 'Enter' && files.length > 0 && submit()}
+				/>
 			</label>
 
 			<button
