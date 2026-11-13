@@ -611,8 +611,10 @@ select option {
 	scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
 }
 
-.standings .list {
-	max-height: 44vh;
+/* Drivers / Teams switch in the standings header */
+.standings-switch .tab {
+	min-height: 36px;
+	padding: 6px 12px 9px;
 }
 
 .row {
@@ -1694,6 +1696,34 @@ select option {
 
 	.round-select select {
 		max-width: 150px;
+	}
+
+	/* Standings header: title + export on one line, Drivers/Teams switch full width below */
+	.standings-panel .panel-title-row {
+		flex-wrap: wrap;
+	}
+
+	.standings-panel .panel-head h2 {
+		flex: 1;
+	}
+
+	.standings-panel .panel-actions {
+		display: contents;
+	}
+
+	.standings-switch {
+		order: 3;
+		flex: 1 1 100%;
+	}
+
+	.standings-switch .tab {
+		flex: 1;
+		justify-content: center;
+	}
+
+	/* Rows with no badge or sub-line (teams): the name can use the badge column */
+	.row:not(.has-sub):not(:has(.chip)) .row-name {
+		grid-column: 2 / 4;
 	}
 
 	/* Phones: give names the room; the platform shows in the driver panel */

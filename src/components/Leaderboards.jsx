@@ -85,7 +85,7 @@ export function ResultsPanel({
 	);
 }
 
-function StandingsPanel({ title, exportTitle, subtitle, board, prevBoard, rowProps, matches, tabs, listKey, notify }) {
+function StandingsPanel({ title, exportTitle, subtitle, board, prevBoard, rowProps, matches, tabs, switcher, listKey, notify }) {
 	const listRef = useRef(null);
 	useFlip(listRef, listKey);
 
@@ -109,17 +109,20 @@ function StandingsPanel({ title, exportTitle, subtitle, board, prevBoard, rowPro
 			tabs={tabs}
 			className="standings-panel"
 			actions={
-				rows.length > 0 && (
-					<ExportMenu
-						title={exportTitle}
-						notify={notify}
-						getImage={() => ({ title: exportTitle, subtitle, rows: imageRows() })}
-						getCsv={() => [
-							['Pos', 'Name', 'Team', 'Category', 'Points', 'Change'],
-							...imageRows().map((r) => [r.rank, r.name, r.sub || '', r.chip || '', r.value, r.delta]),
-						]}
-					/>
-				)
+				<>
+					{switcher}
+					{rows.length > 0 && (
+						<ExportMenu
+							title={exportTitle}
+							notify={notify}
+							getImage={() => ({ title: exportTitle, subtitle, rows: imageRows() })}
+							getCsv={() => [
+								['Pos', 'Name', 'Team', 'Category', 'Points', 'Change'],
+								...imageRows().map((r) => [r.rank, r.name, r.sub || '', r.chip || '', r.value, r.delta]),
+							]}
+						/>
+					)}
+				</>
 			}
 		>
 			<List key={listKey} listRef={listRef} {...(visible.length !== rows.length && NO_MATCHES)}>
@@ -141,10 +144,31 @@ function StandingsPanel({ title, exportTitle, subtitle, board, prevBoard, rowPro
 
 const STANDINGS_TABS = [{ value: 'ALL', label: 'All' }, ...CATEGORIES.map((c) => ({ value: c, label: c }))];
 
+const KIND_TABS = [
+	{ value: 'drivers', label: 'Drivers' },
+	{ value: 'teams', label: 'Teams' },
+];
+
+// One standings panel with a Drivers / Teams switch. The driver category tab
+// is kept here so it survives switching to Teams and back.
+export function Standings(props) {
+	const [kind, setKind] = useState('drivers');
+	const [category, setCategory] = useState('ALL');
+	const switcher = (
+		<Tabs items={KIND_TABS} value={kind} onChange={setKind} label="Standings type" className="segmented standings-switch" />
+	);
+
+	return kind === 'drivers' ? (
+		<DriverStandings {...props} category={category} onCategoryChange={setCategory} switcher={switcher} />
+	) : (
+		<TeamStandings {...props} switcher={switcher} />
+	);
+}
+
 // Driver standings: "All" is the overall table; each category tab is that
 // category's own table, scored on finishing positions within it.
-export function DriverStandings({ season, teamsByUser, platformOf, filter, subtitle, onSelectDriver, notify }) {
-	const [category, setCategory] = useState('ALL');
+function DriverStandings({ season, teamsByUser, platformOf, filter, subtitle, onSelectDriver, notify, category, onCategoryChange, switcher }) {
+	const setCategory = onCategoryChange;
 	const isAll = category === 'ALL';
 	const { standings, previous } = season;
 	const title = isAll ? 'Driver standings' : `${category} driver standings`;
@@ -158,6 +182,7 @@ export function DriverStandings({ season, teamsByUser, platformOf, filter, subti
 			prevBoard={previous && (isAll ? previous.drivers : previous.categories[category] || {})}
 			listKey={category}
 			notify={notify}
+			switcher={switcher}
 			matches={(name) => filter.matchesDriver(name, teamsByUser[name]?.team, platformOf[name])}
 			tabs={<Tabs items={STANDINGS_TABS} value={category} onChange={setCategory} label="Driver standings category" />}
 			rowProps={(name) => ({
@@ -173,7 +198,7 @@ export function DriverStandings({ season, teamsByUser, platformOf, filter, subti
 }
 
 // Team standings come from the overall results only; Privateers are excluded.
-export function TeamStandings({ season, filter, subtitle, notify }) {
+function TeamStandings({ season, filter, subtitle, notify, switcher }) {
 	const onlyTeams = (board) => Object.fromEntries(Object.entries(board).filter(([team]) => isRealTeam(team)));
 	const { standings, previous } = season;
 
@@ -184,7 +209,9 @@ export function TeamStandings({ season, filter, subtitle, notify }) {
 			subtitle={subtitle}
 			board={onlyTeams(standings.teams)}
 			prevBoard={previous && onlyTeams(previous.teams)}
+			listKey="teams"
 			notify={notify}
+			switcher={switcher}
 			matches={filter.matchesTeam}
 			rowProps={() => ({})}
 		/>

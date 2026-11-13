@@ -7,7 +7,7 @@ import SeasonTable from './components/SeasonTable';
 import DriverDrawer from './components/DriverDrawer';
 import { Toasts, useConfirm, useToasts } from './components/Feedback';
 import { FlagIcon, GridIcon, TableIcon, TrophyIcon } from './components/Icons';
-import { DriverStandings, ResultsPanel, TeamStandings } from './components/Leaderboards';
+import { ResultsPanel, Standings } from './components/Leaderboards';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useMediaQuery } from './hooks/useMediaQuery';
 import { csvToJson, isTeamsFile, teamCsvToJson } from './lib/csv';
@@ -265,18 +265,15 @@ export default function App() {
 	const roundTitle = (suffix) => (eventRound ? `${eventRound.name} · ${suffix}` : suffix);
 
 	const standings = (
-		<>
-			<DriverStandings
-				season={season}
-				teamsByUser={teamsByUser}
-				platformOf={platformOf}
-				filter={filter}
-				subtitle={exportSubtitle}
-				onSelectDriver={setSelectedDriver}
-				notify={notify}
-			/>
-			<TeamStandings season={season} filter={filter} subtitle={exportSubtitle} notify={notify} />
-		</>
+		<Standings
+			season={season}
+			teamsByUser={teamsByUser}
+			platformOf={platformOf}
+			filter={filter}
+			subtitle={exportSubtitle}
+			onSelectDriver={setSelectedDriver}
+			notify={notify}
+		/>
 	);
 
 	const seasonTable = (
