@@ -234,12 +234,14 @@ export default function App() {
 	};
 
 	// Driver profile, rendered inline under whichever row was clicked.
-	const renderDetail = (username, close) => (
+	// `category` is the category tab it was opened from (undefined for overall views).
+	const renderDetail = (username, close, category) => (
 		<DriverDetail
 			username={username}
 			season={season}
 			teamsByUser={teamsByUser}
 			platformOf={platformOf}
+			contextCategory={category}
 			onClose={close}
 		/>
 	);

@@ -82,7 +82,7 @@ export function ResultsPanel({
 						muted={entry.time !== leaderTime}
 					/>,
 					expanded === entry.username && (
-						<DetailItem key={`${entry.username}-detail`}>{renderDetail(entry.username, close)}</DetailItem>
+						<DetailItem key={`${entry.username}-detail`}>{renderDetail(entry.username, close, category)}</DetailItem>
 					),
 				])}
 			</List>
@@ -90,7 +90,7 @@ export function ResultsPanel({
 	);
 }
 
-function StandingsPanel({ title, exportTitle, subtitle, board, prevBoard, rowProps, matches, tabs, switcher, listKey, notify, renderDetail }) {
+function StandingsPanel({ title, exportTitle, subtitle, board, prevBoard, rowProps, matches, tabs, switcher, listKey, notify, renderDetail, detailCategory }) {
 	const listRef = useRef(null);
 	const [expanded, toggle, close] = useExpandedDriver();
 	useFlip(listRef, listKey);
@@ -145,7 +145,7 @@ function StandingsPanel({ title, exportTitle, subtitle, board, prevBoard, rowPro
 						delta={<Delta change={r.change} />}
 					/>,
 					renderDetail && expanded === r.name && (
-						<DetailItem key={`${r.name}-detail`}>{renderDetail(r.name, close)}</DetailItem>
+						<DetailItem key={`${r.name}-detail`}>{renderDetail(r.name, close, detailCategory)}</DetailItem>
 					),
 				])}
 			</List>
@@ -195,6 +195,7 @@ function DriverStandings({ season, teamsByUser, platformOf, filter, subtitle, re
 			notify={notify}
 			switcher={switcher}
 			renderDetail={renderDetail}
+			detailCategory={isAll ? undefined : category}
 			matches={(name) => filter.matchesDriver(name, teamsByUser[name]?.team, platformOf[name])}
 			tabs={<Tabs items={STANDINGS_TABS} value={category} onChange={setCategory} label="Driver standings category" />}
 			rowProps={(name) => ({

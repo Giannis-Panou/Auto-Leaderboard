@@ -153,7 +153,7 @@ export default function SeasonTable({ season, teamsByUser, platformOf, filter, r
 								{!isTeams && expanded === r.name && (
 									<tr className="season-detail-row">
 										<td colSpan={rounds.length + 3}>
-											<div className="season-detail">{renderDetail(r.name, close)}</div>
+											<div className="season-detail">{renderDetail(r.name, close, CATEGORIES.includes(tab) ? tab : undefined)}</div>
 										</td>
 									</tr>
 								)}

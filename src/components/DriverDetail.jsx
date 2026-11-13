@@ -47,10 +47,12 @@ function DriverHeading({ p, color }) {
 	);
 }
 
-// Inline driver profile, opened under the driver's row.
-export default function DriverDetail({ username, season, teamsByUser, platformOf, onClose }) {
+// Inline driver profile, opened under the driver's row. `contextCategory` is
+// the category tab the profile was opened from (if any): comparisons are then
+// limited to that category and the chart starts on its points.
+export default function DriverDetail({ username, season, teamsByUser, platformOf, contextCategory, onClose }) {
 	const [compareWith, setCompareWith] = useState('');
-	const [mode, setMode] = useState('overall');
+	const [mode, setMode] = useState(contextCategory ? 'category' : 'overall');
 
 	const a = useMemo(() => profile(season, teamsByUser, username), [season, teamsByUser, username]);
 	const b = useMemo(
@@ -69,8 +71,11 @@ export default function DriverDetail({ username, season, teamsByUser, platformOf
 		values: p.summary.perRound.map((r) => ({ value: valueOf(r), gained: gainedOf(r) })),
 	}));
 
-	const ranks = rankMap(season.standings.drivers);
-	const compareOptions = sortByPointsDesc(season.standings.drivers).filter(([name]) => name !== username);
+	// Compare candidates: the current category's drivers (by category position),
+	// or everyone (by championship position) when opened from an overall view.
+	const compareBoard = contextCategory ? season.standings.categories[contextCategory] || {} : season.standings.drivers;
+	const ranks = rankMap(compareBoard);
+	const compareOptions = sortByPointsDesc(compareBoard).filter(([name]) => name !== username);
 	const people = [a, b].filter(Boolean);
 
 	return (
@@ -93,11 +98,11 @@ export default function DriverDetail({ username, season, teamsByUser, platformOf
 						<span className="visually-hidden">Compare with another driver</span>
 						<span className="select-wrap">
 							<select value={compareWith} onChange={(e) => setCompareWith(e.target.value)}>
-								<option value="">Compare with…</option>
+								<option value="">{contextCategory ? `Compare with ${contextCategory} driver…` : 'Compare with…'}</option>
 								{compareOptions.map(([name]) => (
 									<option key={name} value={name}>
 										P{ranks[name]} · {name}
-										{teamsByUser[name]?.category ? ` · ${teamsByUser[name].category}` : ''}
+										{!contextCategory && teamsByUser[name]?.category ? ` · ${teamsByUser[name].category}` : ''}
 									</option>
 								))}
 							</select>
