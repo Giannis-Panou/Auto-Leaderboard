@@ -82,6 +82,10 @@ export default function LoadPanel({ settings, onSettingChange, onUpload, demos, 
 				</Step>
 
 				<Step number="2" title="Results files" className="step-files">
+					<div className="field">
+					<span className="field-label" aria-hidden="true">
+						Results CSVs
+					</span>
 					<label
 						className={dropzoneClass}
 						onDragOver={(e) => {
@@ -119,13 +123,14 @@ export default function LoadPanel({ settings, onSettingChange, onUpload, demos, 
 							)}
 						</span>
 					</label>
+					</div>
 					<p className="dropzone-hint">Add teams.csv with them to set teams, categories and nationalities.</p>
 				</Step>
 
 				<Step number="3" title="Name & submit" className="step-submit">
 					<div className="submit-row">
 						<label className="field">
-							<span className="visually-hidden">Round name</span>
+							<span className="field-label">Round name</span>
 							<input
 								type="text"
 								className="text-input"

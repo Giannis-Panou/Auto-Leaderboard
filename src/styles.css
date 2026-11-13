@@ -431,9 +431,12 @@ select option {
 	width: auto;
 }
 
+/* Same height as the dropdowns and the round-name box so all three steps line up */
 .step-files .dropzone {
-	flex: 1;
+	flex: none;
 	min-height: 44px;
+	padding-top: 6px;
+	padding-bottom: 6px;
 }
 
 .dropzone-hint {
@@ -444,7 +447,7 @@ select option {
 
 .submit-row {
 	display: flex;
-	align-items: center;
+	align-items: flex-end;
 	gap: 14px;
 }
 
@@ -582,11 +585,56 @@ select option {
    Board layout
    ========================================================================== */
 
+/* Results and standings side by side, same width and same height */
 .board-grid {
+	--row-h: 46px;
+	--row-gap: 6px;
+	--rows-visible: 20;
 	display: grid;
-	grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 	gap: 24px;
-	align-items: start;
+	align-items: stretch;
+}
+
+.board-grid .panel {
+	display: flex;
+	flex-direction: column;
+}
+
+/* The results list shows exactly 20 rows; the standings panel stretches to
+   the same height (so it also shows 20, or more when it has no tabs row). */
+.board-grid .results-panel .list {
+	height: calc(var(--rows-visible) * var(--row-h) + (var(--rows-visible) - 1) * var(--row-gap) + 20px);
+	max-height: none;
+}
+
+.board-grid .standings {
+	min-height: 0;
+}
+
+.board-grid .standings .panel {
+	flex: 1;
+	min-height: 0;
+}
+
+.board-grid .standings .list {
+	flex: 1 1 0;
+	min-height: 0;
+	max-height: none;
+}
+
+.board-grid .row,
+.board-grid .row-detail {
+	flex: none; /* scroll, never squash rows to fit */
+}
+
+.board-grid .row {
+	height: var(--row-h);
+	min-height: 0;
+}
+
+.board-grid .list {
+	gap: var(--row-gap);
 }
 
 .standings,
@@ -599,6 +647,12 @@ select option {
 @media (max-width: 1100px) {
 	.board-grid {
 		grid-template-columns: 1fr;
+	}
+
+	/* Stacked: nothing to stretch to, so both lists use the 20-row height */
+	.board-grid .standings .list {
+		flex: none;
+		height: calc(var(--rows-visible) * var(--row-h) + (var(--rows-visible) - 1) * var(--row-gap) + 20px);
 	}
 }
 
@@ -628,7 +682,9 @@ select option {
 	align-items: center;
 	justify-content: space-between;
 	gap: 12px;
-	min-height: 44px;
+	/* 44px of content + 8px padding on every panel, whatever its buttons, so
+	   side-by-side panels start their rows at exactly the same height */
+	min-height: 52px;
 	padding-bottom: 8px;
 }
 
