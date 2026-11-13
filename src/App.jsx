@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import Header, { Settings } from './components/Header';
-import UploadBar from './components/UploadBar';
+import Header from './components/Header';
+import LoadPanel from './components/LoadPanel';
 import FilterBar from './components/FilterBar';
 import Tabs from './components/Tabs';
 import SeasonTable from './components/SeasonTable';
@@ -12,8 +12,7 @@ import { useLocalStorage } from './hooks/useLocalStorage';
 import { useMediaQuery } from './hooks/useMediaQuery';
 import { csvToJson, isTeamsFile, teamCsvToJson } from './lib/csv';
 import { DEMO_TEAMS_FILE, DEMOS } from './lib/demos';
-import { POINTS_SYSTEM_OPTIONS } from './lib/pointsSystems';
-import { CATEGORIES } from './lib/pointsSystems';
+import { CATEGORIES, POINTS_SYSTEM_OPTIONS, TEAM_SCORER_OPTIONS } from './lib/pointsSystems';
 import { computeSeason, DEFAULT_SETTINGS, mergeRoundFiles, roundFingerprint, scoreRound } from './lib/season';
 
 const CATEGORY_TABS = CATEGORIES.map((c) => ({ value: c, label: c }));
@@ -238,8 +237,20 @@ export default function App() {
 	const closeDriver = useCallback(() => setSelectedDriver(null), []);
 
 	// ---- Pieces ----------------------------------------------------------------
-	const settingsEl = <Settings settings={settings} onChange={updateSetting} />;
-	const uploadBar = <UploadBar onUpload={handleUpload} demos={DEMOS} onLoadDemo={handleLoadDemo} />;
+	const loadPanel = (
+		<LoadPanel
+			settings={settings}
+			onSettingChange={updateSetting}
+			onUpload={handleUpload}
+			demos={DEMOS}
+			onLoadDemo={handleLoadDemo}
+		/>
+	);
+	const rulesSummary = [
+		`${pointsLabel} points`,
+		TEAM_SCORER_OPTIONS.find((o) => o.value === settings.teamScorers)?.label.replace('Drivers', 'team scorers'),
+		settings.dnfCutoff ? `DNF over ${settings.dnfCutoff}%` : 'no DNF cut-off',
+	].join(' · ');
 	const filterBar = (
 		<FilterBar
 			views={isMobile ? undefined : DESKTOP_VIEWS}
@@ -290,12 +301,7 @@ export default function App() {
 
 	return (
 		<div className="app">
-			<Header
-				isMobile={isMobile}
-				settings={settingsEl}
-				onRemoveAllRounds={handleRemoveAllRounds}
-				onDeleteAll={handleDeleteAll}
-			/>
+			<Header onRemoveAllRounds={handleRemoveAllRounds} onDeleteAll={handleDeleteAll} />
 
 			{isMobile ? (
 				<>
@@ -305,9 +311,9 @@ export default function App() {
 						aria-expanded={uploadOpen}
 						onClick={() => setUploadOpen((o) => !o)}
 					>
-						<span>{uploadOpen ? 'Close' : '+ Load results'}</span>
+						<span>{uploadOpen ? 'Close' : '+ Load a round'}</span>
 					</button>
-					{uploadOpen && uploadBar}
+					{uploadOpen ? loadPanel : <p className="rules-summary">Scoring: {rulesSummary}</p>}
 					{filterBar}
 
 					<main className="mobile-view" key={mobileView}>
@@ -341,7 +347,7 @@ export default function App() {
 				</>
 			) : (
 				<>
-					{uploadBar}
+					{loadPanel}
 					{filterBar}
 					{desktopView === 'event' ? (
 						<main className="board-grid">

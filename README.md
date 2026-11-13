@@ -24,9 +24,11 @@ A championship manager for sim rally leagues, inspired by Racenet. Upload the re
 
 ## Using it
 
-1. Upload a `teams.csv` once. It gives each driver their team, category, nationality and platform. The app reads these columns by header name: `RaceNet Name`, `Team Name`, `Category`, `NAT` and `Platform`.
-2. For each round, drop in that round's results CSVs exported from Racenet (for example `Rally2.csv` and `WRC2.csv`), give the round a name, and submit. Several files are combined into one round, ranked by time.
-3. Pick the points system, the number of team scorers and the DNF cut-off in the header. Every round is re-scored straight away.
+The **Load a round** panel walks through three steps:
+
+1. **Scoring rules.** Pick the points system, the number of team scorers and the DNF cut-off. These apply to every round, so changing them re-scores the whole season straight away.
+2. **Results files.** Drop in that round's results CSVs exported from Racenet (for example `Rally2.csv` and `WRC2.csv`). Several files are combined into one round, ranked by time. Add a `teams.csv` alongside them, which only needs uploading once, to give each driver their team, category, nationality and platform. The app reads these columns by header name: `RaceNet Name`, `Team Name`, `Category`, `NAT` and `Platform`.
+3. **Name & submit.** Give the round a name, such as "Round 3 · Kenya", and submit.
 
 To try it without your own files, use **Try a demo → Monaco / Latvia**.
 

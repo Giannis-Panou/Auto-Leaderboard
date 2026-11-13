@@ -125,10 +125,10 @@ select {
 
 .site-header {
 	display: flex;
-	align-items: flex-end;
+	align-items: center;
 	justify-content: space-between;
 	gap: 24px;
-	padding: 24px 0 16px;
+	padding: 20px 0 14px;
 }
 
 .brand {
@@ -147,16 +147,10 @@ select {
 	box-shadow: 8px 0 0 -3px var(--accent);
 }
 
-.header-actions {
-	display: flex;
-	align-items: flex-end;
-	gap: 16px;
-}
-
 /* Checkered strip under the header */
 .checker {
 	height: 10px;
-	margin-bottom: 24px;
+	margin-bottom: 20px;
 	background: repeating-conic-gradient(var(--text) 0 25%, transparent 0 50%) 0 0 / 10px 10px;
 	opacity: 0.85;
 	-webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
@@ -166,11 +160,6 @@ select {
 /* ==========================================================================
    Form fields
    ========================================================================== */
-
-.settings {
-	display: flex;
-	gap: 16px;
-}
 
 .field {
 	display: flex;
@@ -362,28 +351,156 @@ select option {
 	gap: 10px;
 }
 
-.menu-section .settings {
-	flex-direction: column;
-}
-
 .menu-section .btn {
 	width: 100%;
 }
 
 /* ==========================================================================
-   Upload bar
+   Load a round: 1 scoring rules -> 2 results files -> 3 name & submit
    ========================================================================== */
 
-.upload {
-	display: flex;
-	align-items: center;
-	flex-wrap: wrap;
-	gap: 16px 20px;
-	margin-bottom: 24px;
-	padding: 16px;
+.load-panel {
+	margin-bottom: 20px;
 	background: linear-gradient(180deg, rgba(32, 44, 67, 0.55), rgba(32, 44, 67, 0.25));
 	border: 1px solid var(--line);
 	border-radius: var(--cut) 0 var(--cut) 0;
+}
+
+.load-steps {
+	display: grid;
+	grid-template-columns: auto minmax(260px, 1fr) auto;
+	align-items: stretch;
+}
+
+.load-step {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	min-width: 0;
+	padding: 14px 18px 16px;
+}
+
+/* Arrow between steps: reads as "these settings feed this upload" */
+.load-step + .load-step {
+	border-left: 1px solid var(--line);
+}
+
+.load-step + .load-step::before {
+	content: '';
+	position: absolute;
+	left: -7px;
+	top: 50%;
+	width: 12px;
+	height: 12px;
+	background: var(--panel);
+	border-top: 1px solid var(--line-strong);
+	border-right: 1px solid var(--line-strong);
+	transform: translateY(-50%) rotate(45deg);
+}
+
+.step-title {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	font-size: 0.75rem;
+	letter-spacing: 0.14em;
+	color: var(--text-soft);
+	text-shadow: none;
+}
+
+.step-number {
+	display: grid;
+	place-items: center;
+	width: 22px;
+	height: 22px;
+	font-size: 0.75rem;
+	letter-spacing: 0;
+	color: var(--text);
+	background: var(--accent);
+	transform: skewX(var(--skew));
+}
+
+.rules-fields {
+	display: flex;
+	gap: 10px;
+}
+
+.rules-fields select {
+	min-width: 140px;
+	width: auto;
+}
+
+.step-files .dropzone {
+	flex: 1;
+	min-height: 44px;
+}
+
+.dropzone-hint {
+	margin: 0;
+	font-size: 0.75rem;
+	color: var(--muted);
+}
+
+.submit-row {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+}
+
+.submit-row .text-input {
+	width: 200px;
+}
+
+.load-footer {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	flex-wrap: wrap;
+	gap: 4px 20px;
+	padding: 4px 18px;
+	border-top: 1px solid var(--line);
+}
+
+.load-note {
+	margin: 0;
+	font-size: 0.82rem;
+	color: var(--muted);
+}
+
+.load-note strong {
+	color: var(--text-soft);
+}
+
+.rules-summary {
+	margin: -8px 4px 16px;
+	font-size: 0.8rem;
+	color: var(--muted);
+	text-align: center;
+}
+
+/* Narrower desktops: rules on their own row, files + submit below */
+@media (max-width: 1240px) and (min-width: 769px) {
+	.load-steps {
+		grid-template-columns: minmax(0, 1fr) auto;
+	}
+
+	.step-rules {
+		grid-column: 1 / -1;
+		border-bottom: 1px solid var(--line);
+	}
+
+	.step-files {
+		border-left: 0 !important;
+	}
+
+	.step-files::before {
+		display: none;
+	}
+
+	.rules-fields select {
+		width: 180px;
+	}
 }
 
 .dropzone {
@@ -886,10 +1003,6 @@ select option {
 .search input:focus {
 	outline: none;
 	border-color: var(--accent);
-}
-
-.round-name-field {
-	flex: 0 1 220px;
 }
 
 .btn-danger {
@@ -1561,18 +1674,83 @@ select option {
 		margin: 0 4px 16px;
 	}
 
-	.upload {
-		flex-direction: column;
-		align-items: stretch;
+	/* Load panel: steps stacked, arrows point down */
+	.load-panel {
+		margin-bottom: 16px;
 		animation: fade-up 0.22s var(--ease);
 	}
 
-	.dropzone {
-		flex-basis: auto;
+	.load-steps {
+		grid-template-columns: 1fr;
 	}
 
-	.upload .btn {
+	.load-step {
+		padding: 14px 14px 16px;
+	}
+
+	.load-step + .load-step {
+		border-left: 0;
+		border-top: 1px solid var(--line);
+	}
+
+	.load-step + .load-step::before {
+		left: 50%;
+		top: -7px;
+		border-top: 0;
+		border-left: 0;
+		border-right: 1px solid var(--line-strong);
+		border-bottom: 1px solid var(--line-strong);
+		transform: translateX(-50%) rotate(45deg);
+	}
+
+	/* One compact row per rule: label left, dropdown right */
+	.rules-fields {
+		flex-direction: column;
+		gap: 8px;
+	}
+
+	.rules-fields .field {
+		flex-direction: row;
+		align-items: center;
+		gap: 12px;
+	}
+
+	.rules-fields .field-label {
+		flex: 0 0 104px;
+	}
+
+	.rules-fields .select-wrap {
+		flex: 1;
+		min-width: 0;
+	}
+
+	.rules-fields select {
+		width: 100%;
+		min-width: 0;
+	}
+
+	.step-files .dropzone-text {
+		white-space: normal;
+	}
+
+	.submit-row {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.submit-row .text-input {
+		width: 100%;
+	}
+
+	.submit-row .btn {
 		margin: 0 4px;
+	}
+
+	.load-footer {
+		flex-direction: column;
+		align-items: stretch;
+		padding: 10px 14px;
+		text-align: center;
 	}
 
 	.demo-links {
@@ -1667,10 +1845,6 @@ select option {
 
 /* Mobile layout for the filter bar, season table, drawer and toasts */
 @media (max-width: 768px) {
-	.round-name-field {
-		flex-basis: auto;
-	}
-
 	.filter-bar {
 		gap: 10px;
 		margin-bottom: 16px;
@@ -1782,10 +1956,6 @@ select option {
 		bottom: calc(80px + env(safe-area-inset-bottom));
 		align-items: stretch;
 		max-width: none;
-	}
-
-	.settings .field {
-		min-width: 0;
 	}
 }
 
