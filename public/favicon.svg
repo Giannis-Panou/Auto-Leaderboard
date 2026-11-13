@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+	<rect width="64" height="64" rx="14" fill="#11121d"/>
+	<!-- Brand mark: two slanted orange bars -->
+	<path d="M20 10h12l-8 34H12z" fill="#fb4c04"/>
+	<path d="M37 10h8l-8 34h-8z" fill="#fb4c04" opacity=".55"/>
+	<!-- Checkered strip -->
+	<g fill="#fff">
+		<rect x="8" y="48" width="8" height="4"/>
+		<rect x="24" y="48" width="8" height="4"/>
+		<rect x="40" y="48" width="8" height="4"/>
+		<rect x="16" y="52" width="8" height="4"/>
+		<rect x="32" y="52" width="8" height="4"/>
+		<rect x="48" y="52" width="8" height="4"/>
+	</g>
+</svg>

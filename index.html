@@ -4,11 +4,147 @@
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 		<meta name="theme-color" content="#11121d" />
+		<meta name="description" content="Championship manager for sim rally leagues: upload results, score rounds and share the standings." />
 		<title>Auto Leaderboard</title>
-		<link rel="icon" type="image/x-icon" href="/images/favicon.png" />
+		<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+		<link rel="icon" href="/favicon.png" type="image/png" sizes="48x48" />
+		<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+		<link rel="preload" href="/fonts/wrc/WRCCleanBold.ttf" as="font" type="font/ttf" crossorigin />
+
+		<!-- Loading screen styles: inline so it shows before any JS/CSS loads -->
+		<style>
+			@font-face {
+				font-family: 'WRC Clean';
+				src: url('/fonts/wrc/WRCCleanBold.ttf') format('truetype');
+				font-weight: 700;
+				font-display: swap;
+			}
+			html,
+			body {
+				margin: 0;
+				background: #11121d;
+			}
+			#splash {
+				position: fixed;
+				inset: 0;
+				z-index: 1000;
+				display: grid;
+				place-items: center;
+				background: #11121d;
+				color: #fff;
+				font-family: 'WRC Clean', system-ui, sans-serif;
+				transition: opacity 0.45s ease, visibility 0.45s;
+			}
+			#splash.is-done {
+				opacity: 0;
+				visibility: hidden;
+			}
+			.splash-inner {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				gap: 28px;
+				padding: 16px;
+			}
+			.splash-title {
+				display: flex;
+				align-items: center;
+				gap: 14px;
+				margin: 0;
+				font-size: clamp(1.4rem, 5vw, 2.2rem);
+				font-weight: 700;
+				letter-spacing: 0.04em;
+				text-transform: uppercase;
+			}
+			.splash-mark {
+				width: 12px;
+				height: 1.1em;
+				background: #fb4c04;
+				transform: skewX(-12deg);
+				box-shadow: 8px 0 0 -3px #fb4c04;
+			}
+			/* Start lights: they come on one by one, then all go out */
+			.splash-lights {
+				display: flex;
+				gap: clamp(8px, 2.5vw, 16px);
+				padding: 14px 18px;
+				background: #0a0b12;
+				border: 1px solid rgba(255, 255, 255, 0.08);
+				border-radius: 10px 0 10px 0;
+			}
+			.splash-light {
+				width: clamp(28px, 8vw, 44px);
+				aspect-ratio: 1;
+				border-radius: 50%;
+				background: #2a1416;
+				box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.6);
+				animation: splash-light-on 0.1s ease forwards;
+				animation-delay: calc(var(--n) * 0.15s + 0.1s);
+			}
+			@keyframes splash-light-on {
+				to {
+					background: #ff2a1f;
+					box-shadow: 0 0 18px rgba(255, 42, 31, 0.75), inset 0 -3px 6px rgba(0, 0, 0, 0.3);
+				}
+			}
+			#splash.lights-out .splash-light {
+				animation: none;
+			}
+			.splash-strip {
+				width: min(320px, 70vw);
+				height: 10px;
+				background: repeating-conic-gradient(#fff 0 25%, transparent 0 50%) 0 0 / 10px 10px;
+				opacity: 0.85;
+				-webkit-mask-image: linear-gradient(90deg, transparent, #000 15%, #000 85%, transparent);
+				mask-image: linear-gradient(90deg, transparent, #000 15%, #000 85%, transparent);
+				animation: splash-strip 0.6s linear infinite;
+			}
+			@keyframes splash-strip {
+				to {
+					background-position: 20px 0;
+				}
+			}
+			.splash-status {
+				font-size: 0.75rem;
+				font-weight: 700;
+				letter-spacing: 0.24em;
+				text-transform: uppercase;
+				color: #8a93a8;
+			}
+			#splash.lights-out .splash-status {
+				color: #19b37d;
+			}
+			@media (prefers-reduced-motion: reduce) {
+				.splash-light,
+				.splash-strip {
+					animation: none;
+				}
+			}
+		</style>
 	</head>
 	<body>
+		<div id="splash" role="status" aria-label="Loading Auto Leaderboard">
+			<div class="splash-inner" aria-hidden="true">
+				<p class="splash-title"><span class="splash-mark"></span>Auto Leaderboard</p>
+				<div class="splash-lights">
+					<span class="splash-light" style="--n: 0"></span>
+					<span class="splash-light" style="--n: 1"></span>
+					<span class="splash-light" style="--n: 2"></span>
+					<span class="splash-light" style="--n: 3"></span>
+					<span class="splash-light" style="--n: 4"></span>
+				</div>
+				<div class="splash-strip"></div>
+				<span class="splash-status">Loading</span>
+			</div>
+		</div>
 		<div id="root"></div>
+		<script>
+			// Safety net: never leave the loading screen up if the app fails to start.
+			setTimeout(function () {
+				var splash = document.getElementById('splash');
+				if (splash) splash.classList.add('is-done');
+			}, 8000);
+		</script>
 		<script type="module" src="/src/main.jsx"></script>
 	</body>
 </html>
