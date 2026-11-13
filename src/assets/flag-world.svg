@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480">
+	<title>Rest of the world</title>
+	<rect width="640" height="480" fill="#1f4e8c"/>
+	<g fill="none" stroke="#fff" stroke-width="22">
+		<circle cx="320" cy="240" r="170"/>
+		<ellipse cx="320" cy="240" rx="75" ry="170"/>
+		<path d="M320 70v340M150 240h340M178 150h284M178 330h284"/>
+	</g>
+</svg>

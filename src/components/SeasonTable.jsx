@@ -117,6 +117,7 @@ export default function SeasonTable({ season, teamsByUser, platformOf, filter, o
 									<th className="col-name" scope="row">
 										<NameCell
 											name={r.name}
+											driver={!isTeams}
 											nat={isTeams ? undefined : teamsByUser[r.name]?.nat}
 											platform={isTeams ? undefined : platformOf[r.name]}
 											onSelect={isTeams ? undefined : onSelectDriver}

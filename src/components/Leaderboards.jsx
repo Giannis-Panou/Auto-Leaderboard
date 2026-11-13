@@ -62,6 +62,7 @@ export function ResultsPanel({
 						index={index}
 						rank={entry.dnf ? '–' : placeOf(entry)}
 						name={entry.username}
+						driver
 						nat={teamsByUser[entry.username]?.nat}
 						platform={entry.platform}
 						onSelect={onSelectDriver}
@@ -160,6 +161,7 @@ export function DriverStandings({ season, teamsByUser, platformOf, filter, subti
 			matches={(name) => filter.matchesDriver(name, teamsByUser[name]?.team, platformOf[name])}
 			tabs={<Tabs items={STANDINGS_TABS} value={category} onChange={setCategory} label="Driver standings category" />}
 			rowProps={(name) => ({
+				driver: true,
 				nat: teamsByUser[name]?.nat,
 				platform: platformOf[name],
 				onSelect: onSelectDriver,

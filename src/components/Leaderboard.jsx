@@ -46,11 +46,12 @@ export function Badge({ rank, className = '' }) {
 	return <span className={`badge${podium} ${className}`}>{rank}</span>;
 }
 
-// Driver/team name, with optional flag + platform, clickable when onSelect is set.
-export function NameCell({ name, nat, platform, onSelect, className = 'row-name' }) {
+// Driver/team name, clickable when onSelect is set. Drivers get a flag (the
+// "rest of the world" flag when they have no nationality); teams don't.
+export function NameCell({ name, driver, nat, platform, onSelect, className = 'row-name' }) {
 	return (
 		<span className={className}>
-			<Flag nat={nat} />
+			{driver && <Flag nat={nat} />}
 			{onSelect ? (
 				<button type="button" className="name-link" title={`${name} — view driver`} onClick={() => onSelect(name)}>
 					{name}
@@ -66,7 +67,7 @@ export function NameCell({ name, nat, platform, onSelect, className = 'row-name'
 }
 
 // One leaderboard row. `index` drives the staggered reveal animation.
-export function Row({ rank, index, name, nat, platform, onSelect, sub, chip, value, valueTitle, muted, delta, dnf }) {
+export function Row({ rank, index, name, driver, nat, platform, onSelect, sub, chip, value, valueTitle, muted, delta, dnf }) {
 	return (
 		<li
 			className={`row${sub ? ' has-sub' : ''}${dnf ? ' is-dnf' : ''}`}
@@ -74,7 +75,7 @@ export function Row({ rank, index, name, nat, platform, onSelect, sub, chip, val
 			data-flip-key={name}
 		>
 			<Badge rank={rank} />
-			<NameCell name={name} nat={nat} platform={platform} onSelect={onSelect} />
+			<NameCell name={name} driver={driver} nat={nat} platform={platform} onSelect={onSelect} />
 			{sub && (
 				<span className="row-sub" title={sub}>
 					{sub}
