@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Header from './components/Header';
 import LoadPanel from './components/LoadPanel';
 import FilterBar from './components/FilterBar';
 import Tabs from './components/Tabs';
 import SeasonTable from './components/SeasonTable';
-import DriverDrawer from './components/DriverDrawer';
+import DriverDetail from './components/DriverDetail';
 import { Toasts, useConfirm, useToasts } from './components/Feedback';
 import { FlagIcon, GridIcon, TableIcon, TrophyIcon } from './components/Icons';
 import { ResultsPanel, Standings } from './components/Leaderboards';
@@ -73,7 +73,6 @@ export default function App() {
 	const [uploadOpen, setUploadOpen] = useState(false);
 	const [search, setSearch] = useState('');
 	const [platform, setPlatform] = useState('ALL');
-	const [selectedDriver, setSelectedDriver] = useState(null);
 
 	// ---- Derived data ----------------------------------------------------------
 	const teamsByUser = useMemo(() => Object.fromEntries(teams.map((t) => [t.username, t])), [teams]);
@@ -234,7 +233,16 @@ export default function App() {
 		notify('All data deleted.', 'info');
 	};
 
-	const closeDriver = useCallback(() => setSelectedDriver(null), []);
+	// Driver profile, rendered inline under whichever row was clicked.
+	const renderDetail = (username, close) => (
+		<DriverDetail
+			username={username}
+			season={season}
+			teamsByUser={teamsByUser}
+			platformOf={platformOf}
+			onClose={close}
+		/>
+	);
 
 	// ---- Pieces ----------------------------------------------------------------
 	const loadPanel = (
@@ -271,7 +279,7 @@ export default function App() {
 		onRoundChange: setSelectedRoundId,
 		teamsByUser,
 		filter,
-		onSelectDriver: setSelectedDriver,
+		renderDetail,
 	};
 	const roundTitle = (suffix) => (eventRound ? `${eventRound.name} · ${suffix}` : suffix);
 
@@ -282,7 +290,7 @@ export default function App() {
 			platformOf={platformOf}
 			filter={filter}
 			subtitle={exportSubtitle}
-			onSelectDriver={setSelectedDriver}
+			renderDetail={renderDetail}
 			notify={notify}
 		/>
 	);
@@ -293,7 +301,7 @@ export default function App() {
 			teamsByUser={teamsByUser}
 			platformOf={platformOf}
 			filter={filter}
-			onSelectDriver={setSelectedDriver}
+			renderDetail={renderDetail}
 			onRemoveRound={handleRemoveRound}
 			notify={notify}
 		/>
@@ -366,15 +374,6 @@ export default function App() {
 				</>
 			)}
 
-			{selectedDriver && (
-				<DriverDrawer
-					username={selectedDriver}
-					season={season}
-					teamsByUser={teamsByUser}
-					platform={platformOf[selectedDriver]}
-					onClose={closeDriver}
-				/>
-			)}
 			{confirmDialog}
 			<Toasts toasts={toasts} onDismiss={dismiss} />
 		</div>

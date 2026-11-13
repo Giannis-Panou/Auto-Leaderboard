@@ -134,6 +134,20 @@ export function computeSeason(rounds, teamsByUser, settings = DEFAULT_SETTINGS) 
 	};
 }
 
+// Rounds where both drivers finished: how often each one beat the other.
+export function headToHead(season, a, b) {
+	let aAhead = 0;
+	let bAhead = 0;
+	season.rounds.forEach((round) => {
+		const ea = round.entries.find((e) => e.username === a);
+		const eb = round.entries.find((e) => e.username === b);
+		if (!ea || !eb || ea.dnf || eb.dnf) return;
+		if (ea.place < eb.place) aAhead++;
+		else bAhead++;
+	});
+	return { a: aAhead, b: bAhead };
+}
+
 export function sortByPointsDesc(board) {
 	return Object.entries(board).sort((a, b) => b[1] - a[1]);
 }
@@ -146,10 +160,12 @@ export function rankMap(board) {
 // Everything the driver page needs about one driver's season.
 export function driverSummary(season, username) {
 	let cumulative = 0;
+	let categoryCumulative = 0;
 	const perRound = season.rounds.map((round) => {
 		const entry = round.entries.find((e) => e.username === username) || null;
 		cumulative += entry?.points || 0;
-		return { id: round.id, name: round.name, entry, cumulative };
+		categoryCumulative += entry?.categoryPoints || 0;
+		return { id: round.id, name: round.name, entry, cumulative, categoryCumulative };
 	});
 
 	const started = perRound.filter((r) => r.entry);

@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { Badge, EmptyState, NameCell, Panel } from './Leaderboard';
+import { Fragment, useMemo, useState } from 'react';
+import { Badge, EmptyState, NameCell, Panel, selectableRow, useExpandedDriver } from './Leaderboard';
 import ExportMenu from './ExportMenu';
 import Tabs from './Tabs';
 import { CloseIcon } from './Icons';
@@ -14,8 +14,9 @@ const TABS = [
 ];
 
 // Season grid: one row per driver (or team), one column per round, plus total.
-export default function SeasonTable({ season, teamsByUser, platformOf, filter, onSelectDriver, onRemoveRound, notify }) {
+export default function SeasonTable({ season, teamsByUser, platformOf, filter, renderDetail, onRemoveRound, notify }) {
 	const [tab, setTab] = useState('ALL');
+	const [expanded, toggle, close] = useExpandedDriver();
 	const isTeams = tab === 'TEAMS';
 	const { rounds, standings } = season;
 
@@ -110,7 +111,12 @@ export default function SeasonTable({ season, teamsByUser, platformOf, filter, o
 						</thead>
 						<tbody>
 							{visible.map((r, index) => (
-								<tr key={r.name} style={{ '--i': Math.min(index, 20) }}>
+								<Fragment key={r.name}>
+								<tr
+									className={`${isTeams ? '' : 'is-selectable'}${expanded === r.name ? ' is-expanded' : ''}`}
+									style={{ '--i': Math.min(index, 20) }}
+									{...selectableRow(r.name, isTeams ? undefined : toggle, expanded === r.name)}
+								>
 									<td className="col-pos">
 										<Badge rank={r.pos} />
 									</td>
@@ -120,7 +126,6 @@ export default function SeasonTable({ season, teamsByUser, platformOf, filter, o
 											driver={!isTeams}
 											nat={isTeams ? undefined : teamsByUser[r.name]?.nat}
 											platform={isTeams ? undefined : platformOf[r.name]}
-											onSelect={isTeams ? undefined : onSelectDriver}
 											className="cell-name"
 										/>
 									</th>
@@ -145,6 +150,14 @@ export default function SeasonTable({ season, teamsByUser, platformOf, filter, o
 									})}
 									<td className="col-total">{r.total}</td>
 								</tr>
+								{!isTeams && expanded === r.name && (
+									<tr className="season-detail-row">
+										<td colSpan={rounds.length + 3}>
+											<div className="season-detail">{renderDetail(r.name, close)}</div>
+										</td>
+									</tr>
+								)}
+								</Fragment>
 							))}
 						</tbody>
 					</table>

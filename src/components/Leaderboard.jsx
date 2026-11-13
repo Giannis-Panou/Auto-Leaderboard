@@ -46,36 +46,51 @@ export function Badge({ rank, className = '' }) {
 	return <span className={`badge${podium} ${className}`}>{rank}</span>;
 }
 
-// Driver/team name, clickable when onSelect is set. Drivers get a flag (the
-// "rest of the world" flag when they have no nationality); teams don't.
-export function NameCell({ name, driver, nat, platform, onSelect, className = 'row-name' }) {
+// Driver/team name. Drivers get a flag (the "rest of the world" flag when
+// they have no nationality); teams don't.
+export function NameCell({ name, driver, nat, platform, className = 'row-name' }) {
 	return (
 		<span className={className}>
 			{driver && <Flag nat={nat} />}
-			{onSelect ? (
-				<button type="button" className="name-link" title={`${name} — view driver`} onClick={() => onSelect(name)}>
-					{name}
-				</button>
-			) : (
-				<span className="name-text" title={name}>
-					{name}
-				</span>
-			)}
+			<span className="name-text" title={name}>
+				{name}
+			</span>
 			<PlatformBadge platform={platform} />
 		</span>
 	);
 }
 
+// Props that make a whole row (li or tr) open/close the driver profile.
+export function selectableRow(name, onSelect, expanded) {
+	if (!onSelect) return {};
+	return {
+		role: 'button',
+		tabIndex: 0,
+		'aria-expanded': expanded,
+		'aria-label': `${name} — ${expanded ? 'hide' : 'show'} driver profile`,
+		onClick: () => onSelect(name),
+		onKeyDown: (e) => {
+			if (e.target !== e.currentTarget) return;
+			if (e.key === 'Enter' || e.key === ' ') {
+				e.preventDefault();
+				onSelect(name);
+			}
+		},
+	};
+}
+
 // One leaderboard row. `index` drives the staggered reveal animation.
-export function Row({ rank, index, name, driver, nat, platform, onSelect, sub, chip, value, valueTitle, muted, delta, dnf }) {
+// With onSelect, clicking anywhere on the row toggles the driver profile.
+export function Row({ rank, index, name, driver, nat, platform, onSelect, expanded, sub, chip, value, valueTitle, muted, delta, dnf }) {
 	return (
 		<li
-			className={`row${sub ? ' has-sub' : ''}${dnf ? ' is-dnf' : ''}`}
+			className={`row${sub ? ' has-sub' : ''}${dnf ? ' is-dnf' : ''}${onSelect ? ' is-selectable' : ''}${expanded ? ' is-expanded' : ''}`}
 			style={{ '--i': Math.min(index, 20) }}
 			data-flip-key={name}
+			{...selectableRow(name, onSelect, expanded)}
 		>
 			<Badge rank={rank} />
-			<NameCell name={name} driver={driver} nat={nat} platform={platform} onSelect={onSelect} />
+			<NameCell name={name} driver={driver} nat={nat} platform={platform} />
 			{sub && (
 				<span className="row-sub" title={sub}>
 					{sub}
@@ -88,6 +103,18 @@ export function Row({ rank, index, name, driver, nat, platform, onSelect, sub, c
 			</span>
 		</li>
 	);
+}
+
+// The driver profile, shown as an extra list item right under its row.
+export function DetailItem({ children }) {
+	return <li className="row-detail">{children}</li>;
+}
+
+// Which driver's profile is open in a list (one at a time, click again to close).
+export function useExpandedDriver() {
+	const [expanded, setExpanded] = useState(null);
+	const toggle = (name) => setExpanded((current) => (current === name ? null : name));
+	return [expanded, toggle, () => setExpanded(null)];
 }
 
 // Position change since the previous round, as a symbol + number.

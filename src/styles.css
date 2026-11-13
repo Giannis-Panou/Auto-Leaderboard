@@ -814,7 +814,6 @@ select option {
 }
 
 .row-sub,
-.name-link,
 .name-text {
 	min-width: 0;
 	overflow: hidden;
@@ -834,24 +833,6 @@ select option {
 	grid-area: name;
 	font-size: 1.05rem;
 	font-weight: 700;
-}
-
-/* Driver name opens the driver panel */
-.name-link {
-	padding: 0;
-	background: none;
-	border: 0;
-	font-weight: 700;
-	text-align: left;
-	cursor: pointer;
-	text-decoration: underline transparent;
-	text-underline-offset: 4px;
-	text-decoration-thickness: 2px;
-	transition: text-decoration-color 0.15s, color 0.15s;
-}
-
-.name-link:hover {
-	text-decoration-color: var(--accent);
 }
 
 .flag {
@@ -1273,14 +1254,9 @@ select option {
 }
 
 /* ==========================================================================
-   Driver drawer
+   Driver profile (opens inline under the clicked row)
    ========================================================================== */
 
-.no-scroll {
-	overflow: hidden;
-}
-
-.drawer-backdrop,
 .modal-backdrop {
 	position: fixed;
 	inset: 0;
@@ -1291,55 +1267,114 @@ select option {
 	animation: fade-in 0.2s ease;
 }
 
-.drawer {
-	position: absolute;
-	top: 0;
-	right: 0;
-	bottom: 0;
-	display: flex;
-	flex-direction: column;
-	gap: 20px;
-	width: min(480px, 100%);
-	padding: 20px 20px 32px;
-	overflow-y: auto;
-	background: var(--panel);
-	border-left: 1px solid var(--line-strong);
-	box-shadow: -24px 0 60px rgba(0, 0, 0, 0.5);
-	animation: drawer-in 0.3s var(--ease);
+/* Whole rows are clickable */
+.row.is-selectable,
+.season-table tr.is-selectable {
+	cursor: pointer;
 }
 
-.drawer-head {
+.row.is-selectable:focus-visible,
+.season-table tr.is-selectable:focus-visible {
+	outline: 2px solid var(--accent);
+	outline-offset: -2px;
+}
+
+.row.is-expanded {
+	background: var(--surface-raised);
+	border-bottom-right-radius: 0;
+}
+
+.row.is-expanded .badge {
+	box-shadow: 3px 0 0 var(--accent);
+}
+
+.season-table tr.is-expanded > * {
+	background: var(--surface-raised);
+}
+
+.row-detail {
+	margin-top: -6px; /* sit flush under its row */
+	animation: detail-in 0.28s var(--ease);
+}
+
+.season-detail-row > td {
+	padding: 0 !important;
+	height: auto !important;
+	background: none !important;
+	text-align: left !important;
+	white-space: normal !important;
+}
+
+/* Keep the profile in view while the season table scrolls sideways */
+.season-detail {
+	position: sticky;
+	left: 0;
+	width: min(100%, calc(100vw - 100px));
+	max-width: 900px;
+	margin-top: -6px;
+	animation: detail-in 0.28s var(--ease);
+}
+
+.driver-detail {
+	display: flex;
+	flex-direction: column;
+	gap: 18px;
+	padding: 16px;
+	background: var(--panel);
+	border: 1px solid var(--line-strong);
+	border-top: 2px solid var(--accent);
+	border-radius: 0 0 var(--cut) 0;
+	cursor: auto;
+}
+
+.detail-head {
 	display: flex;
 	align-items: flex-start;
 	justify-content: space-between;
+	flex-wrap: wrap;
 	gap: 12px;
 }
 
-.drawer-heading {
+.detail-heading {
 	min-width: 0;
 }
 
-.drawer-head h2 {
+.detail-head h3 {
 	display: flex;
 	align-items: center;
 	gap: 10px;
-	font-size: 1.5rem;
+	margin: 0;
+	font-size: 1.3rem;
 	overflow-wrap: anywhere;
-	text-transform: none;
 }
 
-.drawer-head h2 .flag {
-	width: 28px;
-	height: 21px;
+.detail-head h3 .flag {
+	width: 26px;
+	height: 19.5px;
 }
 
-.drawer-sub {
+.detail-sub {
 	display: flex;
 	align-items: center;
 	flex-wrap: wrap;
 	gap: 6px 10px;
-	margin: 8px 0 0;
+	margin: 6px 0 0;
 	color: var(--muted);
+}
+
+.detail-actions {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.compare-select select {
+	min-width: 0;
+	width: 230px;
+	min-height: 40px;
+	padding-top: 8px;
+	padding-bottom: 8px;
+	font-size: 0.9rem;
 }
 
 .stat-grid {
@@ -1376,34 +1411,78 @@ select option {
 	color: var(--muted);
 }
 
-.drawer-section h3 {
-	margin: 0 0 10px;
+.detail-section h4 {
+	margin: 0;
 	font-size: 0.8rem;
 	letter-spacing: 0.12em;
 	text-transform: uppercase;
 	color: var(--muted);
 }
 
-.drawer-table {
+.detail-section > h4 {
+	margin-bottom: 10px;
+}
+
+.detail-section-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	flex-wrap: wrap;
+	gap: 8px 16px;
+	margin-bottom: 10px;
+}
+
+.detail-section-head .segmented .tab {
+	min-height: 34px;
+	padding: 6px 12px 9px;
+}
+
+.detail-note {
+	font-size: 0.78rem;
+	color: var(--muted);
+}
+
+.detail-driver {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	white-space: nowrap;
+}
+
+.legend-swatch {
+	display: inline-block;
+	flex: none;
+	width: 12px;
+	height: 4px;
+	border-radius: 2px;
+}
+
+/* Results + comparison tables in the profile */
+.detail-table,
+.compare-table {
 	width: 100%;
 	border-collapse: collapse;
 	font-variant-numeric: tabular-nums;
 }
 
-.drawer-table th,
-.drawer-table td {
-	padding: 10px 8px;
+.detail-table th,
+.detail-table td,
+.compare-table th,
+.compare-table td {
+	padding: 9px 8px;
 	text-align: right;
 	white-space: nowrap;
 	border-bottom: 1px solid var(--line);
 }
 
-.drawer-table th:first-child {
+.detail-table th:first-child,
+.compare-table th:first-child {
 	text-align: left;
 	font-weight: 700;
 }
 
-.drawer-table thead th {
+.detail-table thead th,
+.compare-table tbody th {
 	font-size: 0.68rem;
 	letter-spacing: 0.1em;
 	text-transform: uppercase;
@@ -1411,8 +1490,76 @@ select option {
 	font-weight: 700;
 }
 
-.drawer-table td.cell-empty {
+.detail-table .person-col {
 	text-align: center;
+}
+
+.detail-table .person-col .legend-swatch {
+	margin-right: 6px;
+	vertical-align: middle;
+}
+
+.detail-table td.cell-empty {
+	text-align: center;
+}
+
+.compare-table thead th {
+	padding-bottom: 12px;
+	text-align: right;
+}
+
+.compare-table thead .detail-driver {
+	justify-content: flex-end;
+}
+
+.compare-table td strong {
+	font-size: 1.05rem;
+}
+
+/* Two drivers side by side must fit narrow columns: fixed widths, wrapping cells */
+.compare-table {
+	table-layout: fixed;
+}
+
+.compare-table th:first-child {
+	width: 30%;
+}
+
+.compare-table td,
+.compare-table th {
+	white-space: normal;
+	overflow-wrap: anywhere;
+}
+
+.compare-table thead .detail-driver {
+	display: flex;
+	min-width: 0;
+	white-space: nowrap;
+}
+
+.compare-table thead .detail-driver strong {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+/* Stat labels wrap between words, never mid-word */
+.compare-table tbody th {
+	overflow-wrap: normal;
+	word-break: normal;
+	letter-spacing: 0.06em;
+}
+
+/* Keep the chart a sensible size when the profile is very wide */
+.driver-detail .chart {
+	max-width: 620px;
+}
+
+@keyframes detail-in {
+	from {
+		opacity: 0;
+		transform: translateY(-6px);
+	}
 }
 
 /* Points chart */
@@ -1501,6 +1648,41 @@ select option {
 
 .chart-tooltip strong {
 	color: var(--text);
+}
+
+.chart-plot {
+	position: relative;
+}
+
+/* Legend for two-driver comparisons (identity is never colour alone) */
+.chart-legend {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px 18px;
+	margin: 0;
+	padding: 4px 10px 6px;
+	list-style: none;
+	font-size: 0.8rem;
+	color: var(--text-soft);
+}
+
+.chart-legend li {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.chart-end-label {
+	fill: var(--text-soft);
+	font-size: 12px;
+	font-weight: 700;
+	font-family: var(--font);
+}
+
+.tooltip-row {
+	display: flex;
+	align-items: center;
+	gap: 6px;
 }
 
 /* ==========================================================================
@@ -1622,13 +1804,6 @@ select option {
 
 @keyframes fade-in {
 	from {
-		opacity: 0;
-	}
-}
-
-@keyframes drawer-in {
-	from {
-		transform: translateX(40px);
 		opacity: 0;
 	}
 }
@@ -1843,7 +2018,7 @@ select option {
 	}
 }
 
-/* Mobile layout for the filter bar, season table, drawer and toasts */
+/* Mobile layout for the filter bar, season table, driver profile and toasts */
 @media (max-width: 768px) {
 	.filter-bar {
 		gap: 10px;
@@ -1926,28 +2101,51 @@ select option {
 		display: none;
 	}
 
-	.drawer-table {
+	/* Driver profile on phones */
+	.driver-detail {
+		padding: 14px 12px;
+		gap: 16px;
+	}
+
+	.detail-actions {
+		width: 100%;
+	}
+
+	.compare-select {
+		flex: 1;
+	}
+
+	.compare-select select {
+		width: 100%;
+	}
+
+	.stat-grid {
+		grid-template-columns: 1fr 1fr;
+	}
+
+	.detail-table,
+	.compare-table {
 		font-size: 0.85rem;
 	}
 
-	.drawer-table th,
-	.drawer-table td {
-		padding: 10px 5px;
+	.detail-table th,
+	.detail-table td,
+	.compare-table th,
+	.compare-table td {
+		padding: 9px 5px;
 	}
 
-	.drawer-table tbody th {
+	.detail-table tbody th {
 		white-space: normal;
+	}
+
+	.season-detail {
+		width: calc(100vw - 54px);
 	}
 
 	.season-table th,
 	.season-table td {
 		padding: 0 8px;
-	}
-
-	.drawer {
-		width: 100%;
-		border-left: 0;
-		padding: 16px 16px calc(32px + env(safe-area-inset-bottom));
 	}
 
 	.toasts {

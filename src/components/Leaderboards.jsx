@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { CountUp, Delta, deltaText, List, Panel, Row } from './Leaderboard';
+import { CountUp, Delta, deltaText, DetailItem, List, Panel, Row, useExpandedDriver } from './Leaderboard';
 import ExportMenu from './ExportMenu';
 import Tabs from './Tabs';
 import { useFlip } from '../hooks/useFlip';
@@ -38,9 +38,10 @@ export function ResultsPanel({
 	category,
 	teamsByUser,
 	filter,
-	onSelectDriver,
+	renderDetail,
 	listKey,
 }) {
+	const [expanded, toggle, close] = useExpandedDriver();
 	const all = round ? round.entries.filter((e) => !category || e.category === category) : [];
 	const placeOf = (e) => (category ? e.categoryPlace : e.place);
 	const leaderTime = all.find((e) => !e.dnf)?.time;
@@ -56,7 +57,7 @@ export function ResultsPanel({
 			actions={round && <RoundSelect rounds={rounds} value={round.id} onChange={onRoundChange} />}
 		>
 			<List key={listKey} {...(filtered && NO_MATCHES)}>
-				{visible.map((entry, index) => (
+				{visible.flatMap((entry, index) => [
 					<Row
 						key={entry.username}
 						index={index}
@@ -65,7 +66,8 @@ export function ResultsPanel({
 						driver
 						nat={teamsByUser[entry.username]?.nat}
 						platform={entry.platform}
-						onSelect={onSelectDriver}
+						onSelect={toggle}
+						expanded={expanded === entry.username}
 						sub={entry.car}
 						chip={category ? undefined : entry.category}
 						dnf={entry.dnf}
@@ -78,15 +80,19 @@ export function ResultsPanel({
 						}
 						valueTitle={`${formatTime(entry.time)} · ${formatPace(entry.pct)} of winner`}
 						muted={entry.time !== leaderTime}
-					/>
-				))}
+					/>,
+					expanded === entry.username && (
+						<DetailItem key={`${entry.username}-detail`}>{renderDetail(entry.username, close)}</DetailItem>
+					),
+				])}
 			</List>
 		</Panel>
 	);
 }
 
-function StandingsPanel({ title, exportTitle, subtitle, board, prevBoard, rowProps, matches, tabs, switcher, listKey, notify }) {
+function StandingsPanel({ title, exportTitle, subtitle, board, prevBoard, rowProps, matches, tabs, switcher, listKey, notify, renderDetail }) {
 	const listRef = useRef(null);
+	const [expanded, toggle, close] = useExpandedDriver();
 	useFlip(listRef, listKey);
 
 	const prevRanks = prevBoard ? rankMap(prevBoard) : {};
@@ -126,17 +132,22 @@ function StandingsPanel({ title, exportTitle, subtitle, board, prevBoard, rowPro
 			}
 		>
 			<List key={listKey} listRef={listRef} {...(visible.length !== rows.length && NO_MATCHES)}>
-				{visible.map((r, index) => (
+				{visible.flatMap((r, index) => [
 					<Row
 						key={r.name}
 						index={index}
 						rank={r.rank}
 						name={r.name}
 						{...rowProps(r.name)}
+						onSelect={renderDetail ? toggle : undefined}
+						expanded={expanded === r.name}
 						value={<CountUp value={r.points} />}
 						delta={<Delta change={r.change} />}
-					/>
-				))}
+					/>,
+					renderDetail && expanded === r.name && (
+						<DetailItem key={`${r.name}-detail`}>{renderDetail(r.name, close)}</DetailItem>
+					),
+				])}
 			</List>
 		</Panel>
 	);
@@ -167,7 +178,7 @@ export function Standings(props) {
 
 // Driver standings: "All" is the overall table; each category tab is that
 // category's own table, scored on finishing positions within it.
-function DriverStandings({ season, teamsByUser, platformOf, filter, subtitle, onSelectDriver, notify, category, onCategoryChange, switcher }) {
+function DriverStandings({ season, teamsByUser, platformOf, filter, subtitle, renderDetail, notify, category, onCategoryChange, switcher }) {
 	const setCategory = onCategoryChange;
 	const isAll = category === 'ALL';
 	const { standings, previous } = season;
@@ -183,13 +194,13 @@ function DriverStandings({ season, teamsByUser, platformOf, filter, subtitle, on
 			listKey={category}
 			notify={notify}
 			switcher={switcher}
+			renderDetail={renderDetail}
 			matches={(name) => filter.matchesDriver(name, teamsByUser[name]?.team, platformOf[name])}
 			tabs={<Tabs items={STANDINGS_TABS} value={category} onChange={setCategory} label="Driver standings category" />}
 			rowProps={(name) => ({
 				driver: true,
 				nat: teamsByUser[name]?.nat,
 				platform: platformOf[name],
-				onSelect: onSelectDriver,
 				sub: teamsByUser[name]?.team,
 				chip: isAll ? teamsByUser[name]?.category : undefined,
 			})}

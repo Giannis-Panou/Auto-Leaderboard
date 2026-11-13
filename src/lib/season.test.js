@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
 	computeSeason,
 	driverSummary,
+	headToHead,
 	isRealTeam,
 	mergeRoundFiles,
 	rankMap,
@@ -119,7 +120,26 @@ describe('driverSummary', () => {
 		const ben = driverSummary(season, 'ben');
 		expect(ben).toMatchObject({ starts: 3, dnfs: 1, wins: 1, podiums: 2, bestFinish: 1 });
 		expect(ben.perRound.map((r) => r.cumulative)).toEqual([17, 42, 42]);
+		// ben is the only CA2 driver in each round, so wins the category every time he finishes
+		expect(ben.perRound.map((r) => r.categoryCumulative)).toEqual([25, 50, 50]);
 		expect(ben.avgPace).toBeCloseTo(105);
+	});
+});
+
+describe('headToHead', () => {
+	it('counts rounds where both finished, by who placed higher', () => {
+		const season = computeSeason(
+			[
+				round('r1', [row('ana', 100), row('ben', 110)]),
+				round('r2', [row('ben', 100), row('ana', 110)]),
+				round('r3', [row('ben', 100), row('ana', 110)]),
+				round('r4', [row('ana', 100)]), // ben absent
+				round('r5', [row('ana', 100), row('ben', 300)]), // ben DNF
+			],
+			teamsByUser,
+			settings
+		);
+		expect(headToHead(season, 'ana', 'ben')).toEqual({ a: 1, b: 2 });
 	});
 });
 
