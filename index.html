@@ -46,22 +46,40 @@
 				gap: 28px;
 				padding: 16px;
 			}
+			/* Wordmark, same as the header: orange bars + slanted white plate, orange É */
 			.splash-title {
 				display: flex;
 				align-items: center;
 				gap: 14px;
 				margin: 0;
-				font-size: clamp(1.4rem, 5vw, 2.2rem);
-				font-weight: 700;
-				letter-spacing: 0.04em;
-				text-transform: uppercase;
+				font-size: clamp(1.5rem, 6vw, 2.4rem);
+				line-height: 1;
 			}
 			.splash-mark {
+				flex: none;
 				width: 12px;
-				height: 1.1em;
+				height: 1.25em;
 				background: #fb4c04;
 				transform: skewX(-12deg);
 				box-shadow: 8px 0 0 -3px #fb4c04;
+			}
+			.splash-plate {
+				display: inline-block;
+				padding: 0.28em 0.7em 0.24em;
+				background: #fff;
+				color: #11121d;
+				transform: skewX(-12deg);
+				box-shadow: 5px 5px 0 rgba(251, 76, 4, 0.9);
+			}
+			.splash-plate-text {
+				display: inline-block;
+				font-weight: 700;
+				letter-spacing: 0.05em;
+				text-transform: uppercase;
+				transform: skewX(4deg);
+			}
+			.splash-accent {
+				color: #fb4c04;
 			}
 			/* Start lights: they come on one by one, then all go out */
 			.splash-lights {
@@ -125,7 +143,10 @@
 	<body>
 		<div id="splash" role="status" aria-label="Loading Parc Fermé">
 			<div class="splash-inner" aria-hidden="true">
-				<p class="splash-title"><span class="splash-mark"></span>Parc Fermé</p>
+				<p class="splash-title">
+					<span class="splash-mark"></span>
+					<span class="splash-plate"><span class="splash-plate-text">Parc Ferm<span class="splash-accent">é</span></span></span>
+				</p>
 				<div class="splash-lights">
 					<span class="splash-light" style="--n: 0"></span>
 					<span class="splash-light" style="--n: 1"></span>
