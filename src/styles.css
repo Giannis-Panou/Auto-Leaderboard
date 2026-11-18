@@ -2830,10 +2830,12 @@ select option {
 	}
 
 	.row {
-		grid-template-columns: 40px minmax(0, 1fr) 44px var(--value-w, 6.2em);
+		grid-template-columns: 44px minmax(0, 1fr) 44px var(--value-w, 6.2em);
 		grid-template-areas: 'badge name chip value';
 		column-gap: 10px;
-		min-height: 48px;
+		/* Every row in the app is 46px, the same as the season table */
+		height: 46px;
+		min-height: 0;
 		padding-right: 12px;
 	}
 
@@ -2841,15 +2843,30 @@ select option {
 		grid-template-areas:
 			'badge name chip value'
 			'badge sub  sub  value';
+		/* Both lines packed into the same 46px as every other row: the name
+		   sits on the bottom of the top half, the sub-line on top of the lower */
+		grid-template-rows: 1fr 1fr;
 		row-gap: 2px;
-		padding-top: 8px;
-		padding-bottom: 8px;
 	}
 
-	/* The badge spans the padding too, so it fills the row edge to edge and
-	   takes the row's cut corners like on desktop */
+	.row.has-sub .row-name {
+		align-self: end;
+	}
+
+	.row.has-sub .row-sub,
+	.row.has-sub .chip {
+		align-self: start;
+	}
+
+	.row.has-sub .row-name,
+	.row.has-sub .row-sub {
+		line-height: 1.2;
+	}
+
+	/* The badge still spans both lines, edge to edge */
 	.row.has-sub .badge {
-		margin: -8px 0;
+		grid-row: 1 / -1;
+		align-self: stretch;
 	}
 
 	.standings-panel {
@@ -2930,7 +2947,7 @@ select option {
 
 	/* Undo the wider desktop name column for standings rows */
 	.standings-panel .row {
-		grid-template-columns: 40px minmax(0, 1fr) 44px var(--value-w);
+		grid-template-columns: 44px minmax(0, 1fr) 44px var(--value-w);
 	}
 
 	.season-table .col-name {
@@ -3031,14 +3048,14 @@ select option {
 	/* Two-line rows: the category chip moves down next to the car / team, so
 	   the name gets the full width of the top line */
 	.list .row.has-sub:has(.chip) {
-		grid-template-columns: 40px auto minmax(0, 1fr) var(--value-w, 6.2em);
+		grid-template-columns: 44px auto minmax(0, 1fr) var(--value-w, 6.2em);
 		grid-template-areas:
 			'badge name name value'
 			'badge chip sub  value';
 	}
 
 	.list .row.has-sub:not(:has(.chip)) {
-		grid-template-columns: 40px minmax(0, 1fr) var(--value-w, 6.2em);
+		grid-template-columns: 44px minmax(0, 1fr) var(--value-w, 6.2em);
 		grid-template-areas:
 			'badge name value'
 			'badge sub  value';
@@ -3046,8 +3063,9 @@ select option {
 
 	.row.has-sub .chip {
 		justify-self: start;
-		padding: 1px 6px;
-		font-size: 0.62rem;
+		padding: 0 5px;
+		font-size: 0.6rem;
+		line-height: 1.5;
 	}
 
 	.row-sub {
