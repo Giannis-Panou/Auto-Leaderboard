@@ -33,9 +33,10 @@ The **Load a round** panel walks through three steps:
 
 1. **Scoring rules.** Pick the points system, the number of team scorers and the DNF cut-off. These apply to every round, so changing them re-scores the whole season straight away.
 2. **Results files.** Drop in that round's results CSVs exported from Racenet (for example `Rally2.csv` and `WRC2.csv`). Several files are combined into one round, ranked by time. Add a `teams.csv` alongside them, which only needs uploading once, to give each driver their team, category, nationality and platform. The app reads these columns by header name: `RaceNet Name`, `Team Name`, `Category`, `NAT` and `Platform`.
+   League stage sheets work too: a sheet with one block of columns per stage (`CAT POS`, `DRIVER`, `TEAM`, `CATEGORY`, `CAR`, `RALLY TIME`, …) is read from its last stage. Drivers who drop out before the final stage are shown as retired DNFs. Drivers are matched to the teams file by real name (`Name`), and the sheet's own team and category fill any gaps. An entry list with the same columns as `teams.csv` is recognised whatever its file name.
 3. **Name & submit.** Give the round a name, such as "Round 3 · Kenya", and submit.
 
-To try it without your own files, use **Try a demo → Monaco / Latvia**.
+To try it without your own files, use **Try a demo → Jänner / Liepāja**: the first two rounds of a league season, loaded from its stage sheets and entry list.
 
 Data is saved in your browser's `localStorage`. Nothing is uploaded to a server.
 
