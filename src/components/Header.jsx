@@ -8,7 +8,7 @@ export default function Header({ onRemoveAllRounds, onDeleteAll }) {
 			<header className="site-header">
 				<h1 className="brand">
 					<span className="brand-mark" aria-hidden="true" />
-					Auto Leaderboard
+					Parc Fermé
 				</h1>
 				<Menu label="More actions" icon={<DotsIcon />}>
 					{(close) => (

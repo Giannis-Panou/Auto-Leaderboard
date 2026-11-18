@@ -1,4 +1,4 @@
-# Auto Leaderboard
+# Parc Fermé
 
 **[Live demo → autoleaderboard.netlify.app](https://autoleaderboard.netlify.app/)**
 

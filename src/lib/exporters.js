@@ -190,7 +190,7 @@ export async function renderStandingsImage({ title, subtitle, rows }) {
 	ctx.fillStyle = COLORS.muted;
 	ctx.font = `400 18px ${FONT}`;
 	ctx.fillText(
-		`Auto Leaderboard · ${new Date().toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}`,
+		`Parc Fermé · ${new Date().toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}`,
 		pad,
 		height - footerH / 2
 	);
