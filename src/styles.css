@@ -2211,6 +2211,177 @@ select option {
 	}
 }
 
+/* --- Profile page facts (from the CSVs) and championship neighbours --- */
+.facts {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px 26px;
+	margin: 12px 0 0;
+}
+
+.fact {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	min-width: 0;
+}
+
+.fact dt {
+	font-size: 0.65rem;
+	font-weight: 700;
+	letter-spacing: 0.16em;
+	text-transform: uppercase;
+	color: var(--muted);
+}
+
+.fact dd {
+	margin: 0;
+	font-weight: 700;
+	color: var(--text-soft);
+}
+
+.fact-inline {
+	display: inline-flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+
+.neighbours {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+	gap: 10px;
+	font-weight: 700;
+	text-align: right;
+}
+
+.neighbours .field-label {
+	display: block;
+	margin-bottom: 2px;
+}
+
+.gap-chip {
+	padding: 1px 6px;
+	font-size: 0.75rem;
+	border-radius: 3px 0 3px 0;
+	background: rgba(255, 255, 255, 0.06);
+}
+
+.gap-chip.is-ahead {
+	color: var(--down);
+}
+
+.gap-chip.is-behind {
+	color: var(--up);
+}
+
+.cell-soft {
+	color: var(--text-soft);
+}
+
+/* --- Inline compare panel (slides down under a row) --- */
+.compare-head {
+	align-items: flex-end;
+}
+
+.versus {
+	display: flex;
+	align-items: flex-end;
+	flex-wrap: wrap;
+	gap: 10px 14px;
+	min-width: 0;
+}
+
+.versus-name {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	min-height: 40px;
+	font-size: 1.15rem;
+	font-weight: 700;
+}
+
+.versus-vs {
+	min-height: 40px;
+	display: inline-flex;
+	align-items: center;
+	font-size: 0.75rem;
+	font-weight: 700;
+	letter-spacing: 0.16em;
+	text-transform: uppercase;
+	color: var(--muted);
+}
+
+.compare-select {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.compare-summary {
+	margin: 0;
+	padding: 10px 14px;
+	background: var(--surface);
+	border-left: 3px solid var(--accent);
+	border-radius: 0 0 var(--cut) 0;
+	color: var(--text-soft);
+}
+
+.compare-summary strong {
+	color: var(--text);
+}
+
+/* Team names inside rows stay muted like the rest of the sub-line until hovered */
+.row-sub.profile-link {
+	color: var(--muted);
+}
+
+.row-sub.profile-link:hover {
+	color: var(--text);
+}
+
+.compare-head {
+	position: relative;
+	padding-right: 56px; /* room for the close button */
+}
+
+.compare-head > .icon-btn {
+	position: absolute;
+	top: 0;
+	right: 0;
+}
+
+.compare-select select {
+	min-width: 0;
+	width: 240px;
+}
+
+@media (max-width: 768px) {
+	.versus {
+		flex: 1;
+	}
+
+	.compare-select {
+		flex: 1 1 100%;
+	}
+
+	.compare-select select {
+		width: 100%;
+	}
+}
+
+.battle-table .cell-ahead {
+	text-align: left;
+}
+
+.ahead-tag {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	font-weight: 700;
+}
+
 @keyframes detail-in {
 	from {
 		opacity: 0;
@@ -2486,14 +2657,82 @@ select option {
 	display: none;
 }
 
-@media (max-width: 768px) {
+/* Compact layout (tablets and phones): whenever results and standings can't sit
+ side by side, show one board at a time with the bottom tab bar, a
+ collapsible "Load a round" panel and page-scrolling lists. */
+@media (max-width: 1100px) {
 	.app {
-		padding: 0 16px calc(96px + env(safe-area-inset-bottom));
+		padding-bottom: calc(96px + env(safe-area-inset-bottom));
 	}
 
 	.load-toggle {
 		width: calc(100% - 8px);
 		margin: 0 4px 16px;
+	}
+
+	.mobile-view {
+		animation: fade-up 0.22s var(--ease);
+	}
+
+	/* Let the page scroll; keep each panel's header pinned while it's on screen */
+	.list,
+	.standings .list {
+		max-height: none;
+		overflow: visible;
+	}
+
+	.panel-head {
+		position: sticky;
+		top: 0;
+		z-index: 5;
+	}
+
+	.tabbar {
+		display: block;
+		position: fixed;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		z-index: 40;
+		padding-bottom: env(safe-area-inset-bottom);
+		background: rgba(17, 18, 29, 0.92);
+		-webkit-backdrop-filter: blur(12px);
+		backdrop-filter: blur(12px);
+		border-top: 1px solid var(--line);
+	}
+
+	.tabbar .tabs {
+		gap: 0;
+	}
+
+	.tabbar .tab {
+		flex: 1;
+		flex-direction: column;
+		justify-content: center;
+		gap: 4px;
+		min-height: 64px;
+		padding: 10px 4px;
+		font-size: 0.7rem;
+	}
+
+	.tabbar .tab-indicator {
+		top: 0;
+		bottom: auto;
+	}
+
+	/* The pinned header bar would sit over the pinned panel headers */
+	.compact-bar {
+		display: none;
+	}
+
+	.toasts {
+		bottom: calc(80px + env(safe-area-inset-bottom));
+	}
+}
+
+@media (max-width: 768px) {
+	.app {
+		padding: 0 16px calc(96px + env(safe-area-inset-bottom));
 	}
 
 	/* Load panel: steps stacked, arrows point down */
@@ -2580,23 +2819,6 @@ select option {
 		flex-wrap: wrap;
 	}
 
-	.mobile-view {
-		animation: fade-up 0.22s var(--ease);
-	}
-
-	/* Let the page scroll; keep each panel's header pinned while it's on screen */
-	.list,
-	.standings .list {
-		max-height: none;
-		overflow: visible;
-	}
-
-	.panel-head {
-		position: sticky;
-		top: 0;
-		z-index: 5;
-	}
-
 	.row {
 		grid-template-columns: 40px minmax(0, 1fr) 44px var(--value-w, 6.2em);
 		grid-template-areas: 'badge name chip value';
@@ -2631,38 +2853,6 @@ select option {
 		font-size: 0.8rem;
 	}
 
-	.tabbar {
-		display: block;
-		position: fixed;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		z-index: 40;
-		padding-bottom: env(safe-area-inset-bottom);
-		background: rgba(17, 18, 29, 0.92);
-		-webkit-backdrop-filter: blur(12px);
-		backdrop-filter: blur(12px);
-		border-top: 1px solid var(--line);
-	}
-
-	.tabbar .tabs {
-		gap: 0;
-	}
-
-	.tabbar .tab {
-		flex: 1;
-		flex-direction: column;
-		justify-content: center;
-		gap: 4px;
-		min-height: 64px;
-		padding: 10px 4px;
-		font-size: 0.7rem;
-	}
-
-	.tabbar .tab-indicator {
-		top: 0;
-		bottom: auto;
-	}
 }
 
 /* Mobile layout for the filter bar, season table, driver profile and toasts */

@@ -6,7 +6,8 @@ import LoadPanel from './components/LoadPanel';
 import FilterBar from './components/FilterBar';
 import Tabs from './components/Tabs';
 import SeasonTable from './components/SeasonTable';
-import DriverDetail from './components/DriverDetail';
+import DriverCompare from './components/DriverCompare';
+import TeamCompare from './components/TeamCompare';
 import { Toasts, useConfirm, useToasts } from './components/Feedback';
 import { FlagIcon, GridIcon, TableIcon, TrophyIcon } from './components/Icons';
 import { ResultsPanel, Standings } from './components/Leaderboards';
@@ -54,7 +55,9 @@ const isPlainObject = (v) => v !== null && typeof v === 'object' && !Array.isArr
 const newId = () => globalThis.crypto?.randomUUID?.() ?? `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
 
 export default function App() {
-	const isMobile = useMediaQuery('(max-width: 768px)');
+	// Compact layout (one board at a time + tab bar) whenever results and standings
+	// can't sit side by side — the same 1100px breakpoint as the CSS.
+	const isMobile = useMediaQuery('(max-width: 1100px)');
 	const route = useHashRoute(); // { page: 'driver' | 'team', name } on a profile page
 
 	// Profile pages open at the top; leaving one returns to where you were in the lists.
@@ -273,18 +276,19 @@ export default function App() {
 		notify('All data deleted.', 'info');
 	};
 
-	// Driver profile, rendered inline under whichever row was clicked.
+	// Driver compare panel, slid open under whichever driver row was clicked.
 	// `category` is the category tab it was opened from (undefined for overall views).
 	const renderDetail = (username, close, category) => (
-		<DriverDetail
+		<DriverCompare
 			username={username}
 			season={season}
 			teamsByUser={teamsByUser}
-			platformOf={platformOf}
 			contextCategory={category}
 			onClose={close}
 		/>
 	);
+	// Team compare panel, under a team's row.
+	const renderTeamDetail = (team, close) => <TeamCompare team={team} season={season} onClose={close} />;
 
 	// ---- Pieces ----------------------------------------------------------------
 	const loadPanel = (
@@ -333,6 +337,7 @@ export default function App() {
 			filter={filter}
 			subtitle={exportSubtitle}
 			renderDetail={renderDetail}
+			renderTeamDetail={renderTeamDetail}
 			notify={notify}
 		/>
 	);
@@ -344,6 +349,7 @@ export default function App() {
 			platformOf={platformOf}
 			filter={filter}
 			renderDetail={renderDetail}
+			renderTeamDetail={renderTeamDetail}
 			onRemoveRound={handleRemoveRound}
 			onRemoveAllRounds={handleRemoveAllRounds}
 			onDeleteAll={handleDeleteAll}

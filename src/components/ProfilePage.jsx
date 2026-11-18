@@ -1,6 +1,6 @@
 import { EmptyState } from './Leaderboard';
-import DriverDetail from './DriverDetail';
-import TeamPage from './TeamPage';
+import DriverProfile from './DriverProfile';
+import TeamProfile from './TeamProfile';
 import { goBack } from '../hooks/useHashRoute';
 import { isRealTeam } from '../lib/season';
 
@@ -30,16 +30,15 @@ export default function ProfilePage({ route, season, teamsByUser, platformOf }) 
 					/>
 				</section>
 			) : isDriver ? (
-				<DriverDetail
+				<DriverProfile
 					key={route.name}
-					variant="page"
 					username={route.name}
 					season={season}
 					teamsByUser={teamsByUser}
 					platformOf={platformOf}
 				/>
 			) : (
-				<TeamPage key={route.name} team={route.name} season={season} teamsByUser={teamsByUser} />
+				<TeamProfile key={route.name} team={route.name} season={season} teamsByUser={teamsByUser} platformOf={platformOf} />
 			)}
 		</main>
 	);

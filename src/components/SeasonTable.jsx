@@ -7,7 +7,7 @@ import { CloseIcon, DotsIcon } from './Icons';
 import { formatDateTime } from '../lib/format';
 import { isRealTeam, sortByPointsDesc } from '../lib/season';
 import { CATEGORIES } from '../lib/pointsSystems';
-import { driverHref, navigate, teamHref } from '../hooks/useHashRoute';
+import { driverHref, teamHref } from '../hooks/useHashRoute';
 
 const TABS = [
 	{ value: 'ALL', label: 'All' },
@@ -22,6 +22,7 @@ export default function SeasonTable({
 	platformOf,
 	filter,
 	renderDetail,
+	renderTeamDetail,
 	onRemoveRound,
 	onRemoveAllRounds,
 	onDeleteAll,
@@ -158,7 +159,7 @@ export default function SeasonTable({
 								<tr
 									className={`is-selectable${expanded === r.name ? ' is-expanded' : ''}`}
 									style={{ '--i': Math.min(index, 20) }}
-									{...selectableRow(r.name, isTeams ? (team) => navigate(teamHref(team)) : toggle, expanded === r.name)}
+									{...selectableRow(r.name, toggle, expanded === r.name)}
 								>
 									<td className="col-pos">
 										<Badge rank={r.pos} />
@@ -194,10 +195,14 @@ export default function SeasonTable({
 									})}
 									<td className="col-total">{r.total}</td>
 								</tr>
-								{!isTeams && expanded === r.name && (
+								{expanded === r.name && (
 									<tr className="season-detail-row">
 										<td colSpan={rounds.length + 3}>
-											<div className="season-detail">{renderDetail(r.name, close, CATEGORIES.includes(tab) ? tab : undefined)}</div>
+											<div className="season-detail">
+												{isTeams
+													? renderTeamDetail(r.name, close)
+													: renderDetail(r.name, close, CATEGORIES.includes(tab) ? tab : undefined)}
+											</div>
 										</td>
 									</tr>
 								)}

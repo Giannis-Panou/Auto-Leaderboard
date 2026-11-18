@@ -125,6 +125,9 @@ describe('driverSummary', () => {
 		// ben is the only CA2 driver in each round, so wins the category every time he finishes
 		expect(ben.perRound.map((r) => r.categoryCumulative)).toEqual([25, 50, 50]);
 		expect(ben.avgPace).toBeCloseTo(105);
+		expect(ben.avgFinish).toBeCloseTo(1.5); // P2, P1 (the DNF is excluded)
+		expect(ben.pointsPerStart).toBeCloseTo(14); // 42 points over 3 starts
+		expect(ben.cars).toEqual(['Car']);
 	});
 });
 

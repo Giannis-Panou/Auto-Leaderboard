@@ -242,6 +242,9 @@ export function driverSummary(season, username) {
 		wins: places.filter((p) => p === 1).length,
 		podiums: places.filter((p) => p <= 3).length,
 		bestFinish: places.length ? Math.min(...places) : null,
+		avgFinish: places.length ? places.reduce((sum, p) => sum + p, 0) / places.length : null,
+		pointsPerStart: started.length ? cumulative / started.length : null,
+		cars: [...new Set(started.map((r) => r.entry.car))],
 		avgPace: finished.length
 			? finished.reduce((sum, r) => sum + r.entry.pct, 0) / finished.length
 			: null,
