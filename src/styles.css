@@ -388,6 +388,13 @@ select {
 	animation-delay: 0.16s;
 }
 
+/* Keep anything scrolled into view (keyboard focus, links) clear of the pinned bar */
+@media (min-width: 769px) {
+	html {
+		scroll-padding-top: 64px;
+	}
+}
+
 /* Slim header pinned to the top while scrolling (desktop) */
 .compact-bar {
 	position: fixed;
