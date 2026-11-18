@@ -645,37 +645,35 @@ select option {
 }
 
 /* ==========================================================================
-   Buttons — slanted, using skew so outlines follow the angle
+   Buttons — same shape as the dropdowns and inputs: 44px, cut corners, 1px line
    ========================================================================== */
 
 .btn {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
+	gap: 8px;
 	min-height: 44px;
-	padding: 0 24px;
-	border: 1px solid transparent;
-	background: none;
+	padding: 0 18px;
+	background: var(--surface);
+	border: 1px solid var(--line);
+	border-radius: var(--cut) 0 var(--cut) 0;
 	cursor: pointer;
+	font-size: 0.85rem;
 	font-weight: 700;
 	letter-spacing: 0.08em;
 	text-transform: uppercase;
 	white-space: nowrap;
-	transform: skewX(var(--skew));
-	transition: transform 0.15s var(--ease), background-color 0.15s, border-color 0.15s, color 0.15s;
-}
-
-.btn > span {
-	display: inline-block;
-	transform: skewX(calc(var(--skew) * -1));
+	transition: background-color 0.15s, border-color 0.15s, color 0.15s, transform 0.1s;
 }
 
 .btn:hover:not(:disabled) {
-	transform: translateX(2px) skewX(var(--skew));
+	background: var(--surface-raised);
+	border-color: var(--line-strong);
 }
 
 .btn:active:not(:disabled) {
-	transform: skewX(var(--skew)) scale(0.97);
+	transform: translateY(1px);
 }
 
 .btn:disabled {
@@ -683,31 +681,30 @@ select option {
 	cursor: not-allowed;
 }
 
+/* The main action keeps the accent fill */
 .btn-accent {
 	background: var(--accent);
+	border-color: var(--accent);
 	color: var(--text);
 }
 
 .btn-accent:hover:not(:disabled) {
 	background: var(--accent-hover);
+	border-color: var(--accent-hover);
 }
 
 .btn-ghost {
-	border-color: var(--line-strong);
-}
-
-.btn-ghost:hover:not(:disabled) {
-	border-color: var(--text);
-	background: rgba(255, 255, 255, 0.06);
+	background: var(--surface);
 }
 
 .btn-danger-outline {
-	border-color: var(--danger);
+	border-color: rgba(212, 0, 0, 0.65);
 	color: var(--danger-text);
 }
 
 .btn-danger-outline:hover:not(:disabled) {
 	background: var(--danger);
+	border-color: var(--danger);
 	color: var(--text);
 }
 
@@ -730,22 +727,25 @@ select option {
 	border-color: var(--line-strong);
 }
 
+/* Small buttons in a row of options (demo rounds) */
 .link-btn {
-	min-height: 44px;
-	padding: 0 6px;
-	background: none;
-	border: 0;
-	border-bottom: 2px solid transparent;
+	min-height: 36px;
+	padding: 0 14px;
+	background: var(--surface);
+	border: 1px solid var(--line);
+	border-radius: 6px 0 6px 0;
 	cursor: pointer;
+	font-size: 0.78rem;
 	font-weight: 700;
 	letter-spacing: 0.08em;
 	text-transform: uppercase;
-	transition: color 0.15s, border-color 0.15s;
+	transition: background-color 0.15s, border-color 0.15s, color 0.15s;
 }
 
 .link-btn:hover {
-	color: var(--accent);
-	border-bottom-color: var(--accent);
+	background: var(--surface-raised);
+	border-color: var(--accent);
+	color: var(--text);
 }
 
 /* ==========================================================================
@@ -895,8 +895,8 @@ select option {
 	align-items: center;
 	justify-content: space-between;
 	flex-wrap: wrap;
-	gap: 4px 20px;
-	padding: 4px 18px;
+	gap: 8px 20px;
+	padding: 10px 18px;
 	border-top: 1px solid var(--line);
 }
 
@@ -1004,7 +1004,7 @@ select option {
 .demo-links {
 	display: flex;
 	align-items: center;
-	gap: 4px 10px;
+	gap: 8px;
 	font-size: 0.85rem;
 	color: var(--muted);
 }
@@ -1140,6 +1140,7 @@ select option {
 
 .panel-head h2::before {
 	content: '';
+	flex: none;
 	width: 4px;
 	height: 1em;
 	background: var(--accent);
@@ -1479,11 +1480,13 @@ select option {
 
 .btn-danger {
 	background: var(--danger);
+	border-color: var(--danger);
 	color: var(--text);
 }
 
 .btn-danger:hover:not(:disabled) {
 	background: var(--danger-hover);
+	border-color: var(--danger-hover);
 }
 
 .menu-item {
@@ -1699,8 +1702,8 @@ select option {
 	height: 28px;
 	padding: 0;
 	background: none;
-	border: 0;
-	border-radius: 50%;
+	border: 1px solid transparent;
+	border-radius: 6px 0 6px 0;
 	color: var(--muted);
 	cursor: pointer;
 	opacity: 0.6;
@@ -1712,6 +1715,7 @@ select option {
 	opacity: 1;
 	color: var(--danger-text);
 	background: rgba(212, 0, 0, 0.12);
+	border-color: rgba(212, 0, 0, 0.5);
 }
 
 .cell-points {
@@ -2078,15 +2082,15 @@ select option {
 }
 
 .back-btn {
-	min-height: 40px;
-	padding: 0 16px;
+	min-height: 44px;
+	padding: 0 18px;
 	background: var(--surface);
 	border: 1px solid var(--line);
 	border-radius: var(--cut) 0 var(--cut) 0;
 	font-weight: 700;
-	letter-spacing: 0.06em;
+	letter-spacing: 0.08em;
 	text-transform: uppercase;
-	font-size: 0.8rem;
+	font-size: 0.85rem;
 	cursor: pointer;
 	transition: background-color 0.15s, border-color 0.15s, transform 0.15s var(--ease);
 }
@@ -2683,8 +2687,8 @@ select option {
 	}
 
 	.load-toggle {
-		width: calc(100% - 8px);
-		margin: 0 4px 16px;
+		width: 100%;
+		margin: 0 0 16px;
 	}
 
 	.mobile-view {
@@ -2781,24 +2785,13 @@ select option {
 		transform: translateX(-50%) rotate(45deg);
 	}
 
-	/* One compact row per rule: label left, dropdown right */
+	/* Phones: each rule as label above a full-width dropdown, like step 3 */
 	.rules-fields {
 		flex-direction: column;
-		gap: 8px;
-	}
-
-	.rules-fields .field {
-		flex-direction: row;
-		align-items: center;
 		gap: 12px;
 	}
 
-	.rules-fields .field-label {
-		flex: 0 0 104px;
-	}
-
 	.rules-fields .select-wrap {
-		flex: 1;
 		min-width: 0;
 	}
 
@@ -2821,7 +2814,7 @@ select option {
 	}
 
 	.submit-row .btn {
-		margin: 0 4px;
+		width: 100%;
 	}
 
 	.load-footer {
@@ -2984,8 +2977,9 @@ select option {
 		padding: 9px 5px;
 	}
 
+	/* Round names stay on one line; the table scrolls sideways instead */
 	.detail-table tbody th {
-		white-space: normal;
+		white-space: nowrap;
 	}
 
 	.season-detail {
@@ -3003,6 +2997,95 @@ select option {
 		bottom: calc(80px + env(safe-area-inset-bottom));
 		align-items: stretch;
 		max-width: none;
+	}
+
+	/* Panel tabs share the width so all of them fit (ALL … CA4 TEAMS) */
+	.panel-head > .tabs .tab {
+		flex: 1 1 auto;
+		justify-content: center;
+		padding: 10px 6px 13px;
+		font-size: 0.78rem;
+	}
+
+	/* Results header: title on one line, round picker full width under it */
+	.results-panel .panel-title-row {
+		flex-wrap: wrap;
+	}
+
+	.results-panel .panel-actions,
+	.results-panel .round-select {
+		flex: 1 1 100%;
+	}
+
+	.results-panel .round-select select {
+		width: 100%;
+		max-width: none;
+	}
+
+	/* Two-line rows: the category chip moves down next to the car / team, so
+	   the name gets the full width of the top line */
+	.list .row.has-sub:has(.chip) {
+		grid-template-columns: 40px auto minmax(0, 1fr) var(--value-w, 6.2em);
+		grid-template-areas:
+			'badge name name value'
+			'badge chip sub  value';
+	}
+
+	.list .row.has-sub:not(:has(.chip)) {
+		grid-template-columns: 40px minmax(0, 1fr) var(--value-w, 6.2em);
+		grid-template-areas:
+			'badge name value'
+			'badge sub  value';
+	}
+
+	.row.has-sub .chip {
+		justify-self: start;
+		padding: 1px 6px;
+		font-size: 0.62rem;
+	}
+
+	.row-sub {
+		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	/* Confirm dialog: full-width buttons, the action on top */
+	.modal {
+		padding: 20px;
+	}
+
+	.modal-actions {
+		flex-direction: column-reverse;
+	}
+
+	.modal-actions .btn {
+		width: 100%;
+	}
+
+	/* Demo buttons share the footer row evenly */
+	.demo-links {
+		display: grid;
+		grid-template-columns: auto 1fr 1fr;
+		align-items: center;
+	}
+
+	/* Profile page: stats two to a row, neighbours lined up with the facts */
+	.driver-detail.is-page > .stat-grid {
+		grid-template-columns: 1fr 1fr;
+	}
+
+	.neighbours {
+		align-items: flex-start;
+		text-align: left;
+	}
+
+	/* Compare panel: the rival dropdown sits on its own line below the close
+	   button, so it can use the room kept clear for that button */
+	.compare-head .compare-select {
+		flex: 0 0 calc(100% + 56px);
+		margin-right: -56px;
 	}
 }
 
