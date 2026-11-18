@@ -1,6 +1,6 @@
 # Parc Fermé
 
-**[Live demo → autoleaderboard.netlify.app](https://autoleaderboard.netlify.app/)**
+**[Live demo → parcfermeapp.netlify.app](https://parcfermeapp.netlify.app/)**
 
 A championship manager for sim rally leagues, inspired by Racenet. Upload the results CSVs from each round, and it scores the season using real motorsport points systems. It then builds the event results, driver, team and per-category standings, and a full season table.
 
@@ -51,7 +51,7 @@ npm run build      # production build in dist/
 npm run preview    # serve the production build locally
 ```
 
-Deployed on [Netlify](https://autoleaderboard.netlify.app/). `netlify.toml` runs `npm run build` and publishes `dist/`.
+Deployed on [Netlify](https://parcfermeapp.netlify.app/). `netlify.toml` runs `npm run build` and publishes `dist/`.
 
 ### Project layout
 
