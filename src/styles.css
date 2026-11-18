@@ -2846,6 +2846,12 @@ select option {
 		padding-bottom: 8px;
 	}
 
+	/* The badge spans the padding too, so it fills the row edge to edge and
+	   takes the row's cut corners like on desktop */
+	.row.has-sub .badge {
+		margin: -8px 0;
+	}
+
 	.standings-panel {
 		--value-w: 5.4em;
 	}
