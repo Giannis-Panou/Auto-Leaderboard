@@ -1,6 +1,4 @@
 import { useEffect, useRef, useState } from 'react';
-import Menu from './Menu';
-import { DotsIcon } from './Icons';
 import { formatDateTime } from '../lib/format';
 
 // Wordmark: slanted white "door plate" with the É picked out in orange.
@@ -40,9 +38,9 @@ function TimingBlock({ label, children, className = '' }) {
 	);
 }
 
-// Header as a timing screen: name + tagline, the season's live state, and
-// the menu. A slim copy pins to the top of the page once you scroll past it.
-export default function Header({ status, onRemoveAllRounds, onDeleteAll }) {
+// Header as a timing screen: name + tagline and the season's live state.
+// A slim copy pins to the top of the page once you scroll past it.
+export default function Header({ status }) {
 	const headerRef = useRef(null);
 	const [pinned, setPinned] = useState(false);
 
@@ -98,33 +96,6 @@ export default function Header({ status, onRemoveAllRounds, onDeleteAll }) {
 					)}
 				</div>
 
-				<Menu label="More actions" icon={<DotsIcon />} className="header-menu">
-					{(close) => (
-						<div className="menu-section">
-							<span className="field-label">Danger zone</span>
-							<button
-								type="button"
-								className="btn btn-danger-outline"
-								onClick={() => {
-									close();
-									onRemoveAllRounds();
-								}}
-							>
-								<span>Remove all rounds</span>
-							</button>
-							<button
-								type="button"
-								className="btn btn-danger-outline"
-								onClick={() => {
-									close();
-									onDeleteAll();
-								}}
-							>
-								<span>Delete all data</span>
-							</button>
-						</div>
-					)}
-				</Menu>
 			</header>
 
 			<div className="race-stripe" aria-hidden="true">

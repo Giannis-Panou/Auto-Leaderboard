@@ -1,8 +1,9 @@
 import { Fragment, useMemo, useState } from 'react';
 import { Badge, EmptyState, NameCell, Panel, selectableRow, useExpandedDriver } from './Leaderboard';
 import ExportMenu from './ExportMenu';
+import Menu from './Menu';
 import Tabs from './Tabs';
-import { CloseIcon } from './Icons';
+import { CloseIcon, DotsIcon } from './Icons';
 import { formatDateTime } from '../lib/format';
 import { isRealTeam, sortByPointsDesc } from '../lib/season';
 import { CATEGORIES } from '../lib/pointsSystems';
@@ -14,7 +15,17 @@ const TABS = [
 ];
 
 // Season grid: one row per driver (or team), one column per round, plus total.
-export default function SeasonTable({ season, teamsByUser, platformOf, filter, renderDetail, onRemoveRound, notify }) {
+export default function SeasonTable({
+	season,
+	teamsByUser,
+	platformOf,
+	filter,
+	renderDetail,
+	onRemoveRound,
+	onRemoveAllRounds,
+	onDeleteAll,
+	notify,
+}) {
 	const [tab, setTab] = useState('ALL');
 	const [expanded, toggle, close] = useExpandedDriver();
 	const isTeams = tab === 'TEAMS';
@@ -59,16 +70,47 @@ export default function SeasonTable({ season, teamsByUser, platformOf, filter, r
 			className="season-panel"
 			tabs={<Tabs items={TABS} value={tab} onChange={setTab} label="Season table view" />}
 			actions={
-				rows.length > 0 && (
-					<ExportMenu
-						title={title}
-						notify={notify}
-						getCsv={() => [
-							['Pos', label, ...rounds.map((r) => r.name), 'Total'],
-							...visible.map((r) => [r.pos, r.name, ...rounds.map((_, i) => cellText(cell(i, r.name))), r.total]),
-						]}
-					/>
-				)
+				<>
+					{rows.length > 0 && (
+						<ExportMenu
+							title={title}
+							notify={notify}
+							getCsv={() => [
+								['Pos', label, ...rounds.map((r) => r.name), 'Total'],
+								...visible.map((r) => [r.pos, r.name, ...rounds.map((_, i) => cellText(cell(i, r.name))), r.total]),
+							]}
+						/>
+					)}
+					{/* Clearing data lives with the rounds it clears */}
+					<Menu label="Season data" icon={<DotsIcon />}>
+						{(closeMenu) => (
+							<div className="menu-section">
+								<span className="field-label">Season data</span>
+								<p className="menu-note">Remove a single round with the ✕ next to its name in the table.</p>
+								<button
+									type="button"
+									className="btn btn-danger-outline"
+									onClick={() => {
+										closeMenu();
+										onRemoveAllRounds();
+									}}
+								>
+									<span>Remove all rounds</span>
+								</button>
+								<button
+									type="button"
+									className="btn btn-danger-outline"
+									onClick={() => {
+										closeMenu();
+										onDeleteAll();
+									}}
+								>
+									<span>Delete all data</span>
+								</button>
+							</div>
+						)}
+					</Menu>
+				</>
 			}
 		>
 			{rounds.length === 0 ? (

@@ -301,7 +301,9 @@ export default function App() {
 		filter,
 		renderDetail,
 	};
-	const roundTitle = (suffix) => (eventRound ? `${eventRound.name} · ${suffix}` : suffix);
+	// With 2+ rounds the round picker next to the title already names the round.
+	const roundTitle = (suffix) =>
+		eventRound && season.rounds.length < 2 ? `${eventRound.name} · ${suffix}` : suffix;
 
 	const standings = (
 		<Standings
@@ -323,13 +325,15 @@ export default function App() {
 			filter={filter}
 			renderDetail={renderDetail}
 			onRemoveRound={handleRemoveRound}
+			onRemoveAllRounds={handleRemoveAllRounds}
+			onDeleteAll={handleDeleteAll}
 			notify={notify}
 		/>
 	);
 
 	return (
 		<div className="app">
-			<Header status={headerStatus} onRemoveAllRounds={handleRemoveAllRounds} onDeleteAll={handleDeleteAll} />
+			<Header status={headerStatus} />
 
 			{isMobile ? (
 				<>
