@@ -22,13 +22,21 @@ function lightsOn(splash) {
 	});
 }
 
+// Marks the page ready: the header's brand mark and race stripe animate in
+// on this class, so they play right after the lights go out.
+const markReady = () => document.documentElement.classList.add('app-ready');
+
 export async function hideSplash() {
 	const splash = document.getElementById('splash');
-	if (!splash) return;
+	if (!splash) {
+		markReady();
+		return;
+	}
 
 	// Reduced motion: no light show, just get out of the way.
 	if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
 		splash.remove();
+		markReady();
 		return;
 	}
 
@@ -42,6 +50,7 @@ export async function hideSplash() {
 	await wait(HOLD_GO);
 
 	splash.classList.add('is-done');
+	markReady();
 	await wait(FADE + 100);
 	splash.remove();
 }

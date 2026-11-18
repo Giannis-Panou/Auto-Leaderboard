@@ -120,41 +120,439 @@ select {
 }
 
 /* ==========================================================================
-   Header
+   Header: wordmark plate + tagline, live timing blocks, menu
    ========================================================================== */
 
 .site-header {
-	display: flex;
+	position: relative;
+	isolation: isolate;
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr) auto;
+	grid-template-areas: 'brand timing menu';
 	align-items: center;
-	justify-content: space-between;
-	gap: 24px;
-	padding: 20px 0 14px;
+	gap: 16px 28px;
+	padding: 22px 0 16px;
+}
+
+/* Background: soft orange glow behind the logo, speed lines, stage map */
+.header-bg {
+	position: absolute;
+	inset: 0 -24px;
+	z-index: -1;
+	overflow: hidden;
+	pointer-events: none;
+	background:
+		radial-gradient(ellipse 360px 120px at 90px 55%, rgba(251, 76, 4, 0.16), transparent 70%),
+		repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.035) 0 2px, transparent 2px 22px);
+	-webkit-mask-image: linear-gradient(90deg, #000 0%, rgba(0, 0, 0, 0.6) 40%, rgba(0, 0, 0, 0.25) 100%);
+	mask-image: linear-gradient(90deg, #000 0%, rgba(0, 0, 0, 0.6) 40%, rgba(0, 0, 0, 0.25) 100%);
+}
+
+.stage-map {
+	position: absolute;
+	right: 0;
+	top: 0;
+	width: 55%;
+	height: 100%;
+	opacity: 0.9;
+}
+
+.stage-road {
+	fill: none;
+	stroke: rgba(255, 255, 255, 0.07);
+	stroke-width: 3;
+	stroke-dasharray: 10 8;
+	stroke-linecap: round;
+}
+
+.stage-point {
+	fill: rgba(251, 76, 4, 0.35);
+}
+
+/* Wordmark: brand bars + slanted white "door plate" */
+.brand-block {
+	grid-area: brand;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	min-width: 0;
+}
+
+.brand-block h1 {
+	text-shadow: none;
 }
 
 .brand {
-	display: flex;
+	display: inline-flex;
 	align-items: center;
-	gap: 14px;
-	font-size: clamp(1.4rem, 2.6vw, 2.1rem);
+	gap: 12px;
+	font-size: clamp(1.3rem, 2.3vw, 1.85rem);
 	line-height: 1;
 }
 
 .brand-mark {
-	width: 12px;
-	height: 1.1em;
+	flex: none;
+	width: 11px;
+	height: 1.25em;
 	background: var(--accent);
 	transform: skewX(var(--skew));
 	box-shadow: 8px 0 0 -3px var(--accent);
 }
 
-/* Checkered strip under the header */
-.checker {
-	height: 10px;
+.brand-plate {
+	display: inline-block;
+	padding: 0.28em 0.7em 0.24em;
+	background: var(--text);
+	color: var(--bg);
+	transform: skewX(var(--skew));
+	box-shadow: 4px 4px 0 rgba(251, 76, 4, 0.9);
+}
+
+/* Undo most of the plate's skew so the text leans like a livery wordmark */
+.brand-text {
+	display: inline-block;
+	font-weight: 700;
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+	transform: skewX(4deg);
+}
+
+.brand-accent {
+	color: var(--accent);
+}
+
+.tagline {
+	margin: 0 0 0 26px;
+	font-size: 0.7rem;
+	font-weight: 700;
+	letter-spacing: 0.22em;
+	text-transform: uppercase;
+	color: var(--muted);
+}
+
+/* Timing blocks */
+.timing {
+	grid-area: timing;
+	display: flex;
+	justify-content: flex-end;
+	align-items: stretch;
+	min-width: 0;
+}
+
+.timing-block {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	gap: 4px;
+	min-width: 0;
+	padding: 8px 18px;
+	border-left: 1px solid var(--line);
+}
+
+.timing-label {
+	font-size: 0.65rem;
+	font-weight: 700;
+	letter-spacing: 0.18em;
+	text-transform: uppercase;
+	color: var(--muted);
+}
+
+.timing-value {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 4px 8px;
+	min-width: 0;
+	font-size: 1rem;
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
+}
+
+.timing-leader .leader-name {
+	max-width: 180px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.timing-leader strong {
+	color: var(--gold);
+}
+
+.timing-meta .timing-value {
+	font-size: 0.85rem;
+	font-weight: 400;
+	color: var(--text-soft);
+}
+
+.timing-updated {
+	flex-basis: 100%;
+	font-size: 0.75rem;
+	color: var(--muted);
+}
+
+.p1-chip {
+	padding: 1px 6px;
+	font-size: 0.65rem;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	color: var(--bg);
+	background: var(--gold);
+	border-radius: 3px 0 3px 0;
+}
+
+.timing-empty {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	font-size: 0.85rem;
+	color: var(--muted);
+}
+
+/* Green "live feed" dot: pulses when a round loads */
+.live-dot {
+	position: relative;
+	flex: none;
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: var(--up);
+}
+
+.live-dot::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	border-radius: 50%;
+	background: var(--up);
+	animation: live-pulse 1.2s ease-out 3;
+}
+
+.live-dot.is-idle {
+	background: var(--muted);
+}
+
+.live-dot.is-idle::after {
+	display: none;
+}
+
+.header-menu {
+	grid-area: menu;
+}
+
+/* Race stripe under the header: orange + white bands over the checker */
+.race-stripe {
+	display: grid;
+	gap: 3px;
 	margin-bottom: 20px;
+}
+
+.stripe-orange,
+.stripe-white {
+	display: block;
+}
+
+.stripe-orange {
+	height: 4px;
+	background: linear-gradient(90deg, var(--accent) 0%, var(--accent) 55%, transparent 100%);
+}
+
+.stripe-white {
+	height: 2px;
+	background: linear-gradient(90deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.8) 35%, transparent 85%);
+}
+
+.checker {
+	display: block;
+	height: 10px;
 	background: repeating-conic-gradient(var(--text) 0 25%, transparent 0 50%) 0 0 / 10px 10px;
 	opacity: 0.85;
 	-webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
 	mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+}
+
+/* After the start lights go out: brand bars slide in, stripes sweep across */
+.app-ready .site-header .brand-mark {
+	animation: brand-in 0.5s var(--ease) both;
+}
+
+.app-ready .race-stripe > * {
+	animation: stripe-sweep 0.8s var(--ease) both;
+}
+
+.app-ready .race-stripe .stripe-white {
+	animation-delay: 0.08s;
+}
+
+.app-ready .race-stripe .checker {
+	animation-delay: 0.16s;
+}
+
+/* Slim header pinned to the top while scrolling (desktop) */
+.compact-bar {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	z-index: 60;
+	display: flex;
+	align-items: center;
+	gap: 24px;
+	height: 52px;
+	padding: 0 max(24px, calc((100vw - 1440px) / 2 + 24px));
+	background: rgba(17, 18, 29, 0.86);
+	-webkit-backdrop-filter: blur(12px);
+	backdrop-filter: blur(12px);
+	border-bottom: 1px solid var(--line);
+	box-shadow: 0 1px 0 rgba(251, 76, 4, 0.5);
+	transform: translateY(-100%);
+	visibility: hidden;
+	transition: transform 0.25s var(--ease), visibility 0.25s;
+}
+
+.compact-bar.is-visible {
+	transform: translateY(0);
+	visibility: visible;
+}
+
+.compact-home,
+.compact-top {
+	padding: 0;
+	background: none;
+	border: 0;
+	cursor: pointer;
+}
+
+.brand.brand-small {
+	font-size: 0.95rem;
+	gap: 9px;
+}
+
+.brand-small .brand-plate {
+	box-shadow: 3px 3px 0 rgba(251, 76, 4, 0.9);
+}
+
+.compact-status {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	min-width: 0;
+	font-size: 0.85rem;
+	font-weight: 700;
+	white-space: nowrap;
+}
+
+.compact-status strong {
+	color: var(--gold);
+}
+
+.compact-round {
+	margin-right: 10px;
+	padding-right: 18px;
+	color: var(--text-soft);
+	border-right: 1px solid var(--line);
+}
+
+.compact-top {
+	margin-left: auto;
+	font-size: 0.72rem;
+	font-weight: 700;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+	color: var(--muted);
+}
+
+.compact-top:hover {
+	color: var(--text);
+}
+
+@keyframes live-pulse {
+	from {
+		transform: scale(1);
+		opacity: 0.7;
+	}
+	to {
+		transform: scale(3.2);
+		opacity: 0;
+	}
+}
+
+@keyframes brand-in {
+	from {
+		transform: translateX(-28px) skewX(var(--skew));
+		opacity: 0;
+	}
+}
+
+@keyframes stripe-sweep {
+	from {
+		clip-path: inset(0 100% 0 0);
+	}
+	to {
+		clip-path: inset(0 0 0 0);
+	}
+}
+
+/* Narrower desktops: drop the season meta block first */
+@media (max-width: 1240px) {
+	.timing-meta {
+		display: none;
+	}
+}
+
+/* Phones: wordmark + menu on top, one compact status line below */
+@media (max-width: 768px) {
+	.site-header {
+		grid-template-columns: minmax(0, 1fr) auto;
+		grid-template-areas:
+			'brand menu'
+			'timing timing';
+		gap: 12px 12px;
+		padding: 16px 0 12px;
+	}
+
+	.header-bg {
+		inset: 0 -16px;
+	}
+
+	.stage-map,
+	.tagline {
+		display: none;
+	}
+
+	.brand {
+		font-size: 1.35rem;
+	}
+
+	.timing {
+		justify-content: flex-start;
+		gap: 0;
+	}
+
+	.timing-block {
+		padding: 0 12px;
+	}
+
+	.timing-block:first-child {
+		padding-left: 0;
+		border-left: 0;
+	}
+
+	.timing-value {
+		font-size: 0.85rem;
+	}
+
+	.timing-leader .leader-name {
+		max-width: 130px;
+	}
+
+	.race-stripe {
+		margin-bottom: 16px;
+	}
+
+	.compact-bar {
+		display: none;
+	}
 }
 
 /* ==========================================================================
@@ -1130,16 +1528,6 @@ select option {
 	font-size: 0.75rem;
 }
 
-.status {
-	margin: 0 0 0 auto;
-	font-size: 0.85rem;
-	color: var(--muted);
-}
-
-.status strong {
-	color: var(--text);
-}
-
 /* ==========================================================================
    Season table
    ========================================================================== */
@@ -1891,15 +2279,6 @@ select option {
 		padding: 0 16px calc(96px + env(safe-area-inset-bottom));
 	}
 
-	.site-header {
-		align-items: center;
-		padding: 16px 0 12px;
-	}
-
-	.checker {
-		margin-bottom: 16px;
-	}
-
 	.load-toggle {
 		width: calc(100% - 8px);
 		margin: 0 4px 16px;
@@ -2092,11 +2471,6 @@ select option {
 	.segmented .tab {
 		flex: 1;
 		justify-content: center;
-	}
-
-	.status {
-		margin: 0;
-		font-size: 0.8rem;
 	}
 
 	.round-select select {

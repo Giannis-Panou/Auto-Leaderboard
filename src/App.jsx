@@ -13,7 +13,15 @@ import { useMediaQuery } from './hooks/useMediaQuery';
 import { csvToJson, isTeamsFile, teamCsvToJson } from './lib/csv';
 import { DEMO_TEAMS_FILE, DEMOS } from './lib/demos';
 import { CATEGORIES, POINTS_SYSTEM_OPTIONS, TEAM_SCORER_OPTIONS } from './lib/pointsSystems';
-import { computeSeason, DEFAULT_SETTINGS, mergeRoundFiles, roundFingerprint, scoreRound } from './lib/season';
+import {
+	computeSeason,
+	DEFAULT_SETTINGS,
+	isRealTeam,
+	mergeRoundFiles,
+	roundFingerprint,
+	scoreRound,
+	sortByPointsDesc,
+} from './lib/season';
 
 const CATEGORY_TABS = CATEGORIES.map((c) => ({ value: c, label: c }));
 const RESULT_TABS = [{ value: 'OVERALL', label: 'Overall' }, ...CATEGORY_TABS];
@@ -104,6 +112,18 @@ export default function App() {
 	const eventRound = season.rounds.find((r) => r.id === selectedRoundId) || latestRound;
 	const pointsLabel = POINTS_SYSTEM_OPTIONS.find((o) => o.value === settings.pointsSystem)?.label;
 	const exportSubtitle = latestRound ? `After ${latestRound.name} · ${pointsLabel} points` : '';
+
+	// Live season state for the header's timing blocks.
+	const headerStatus = useMemo(() => {
+		const [leaderName, leaderPoints] = sortByPointsDesc(season.standings.drivers)[0] || [];
+		return {
+			round: latestRound,
+			leader: leaderName ? { name: leaderName, points: leaderPoints } : null,
+			rounds: season.rounds.length,
+			drivers: Object.keys(season.standings.drivers).length,
+			teams: Object.keys(season.standings.teams).filter(isRealTeam).length,
+		};
+	}, [season, latestRound]);
 
 	// ---- Loading ---------------------------------------------------------------
 	// Load teams (optional) and a round made of one or more result files.
@@ -270,8 +290,6 @@ export default function App() {
 			onSearch={setSearch}
 			platform={platform}
 			onPlatform={setPlatform}
-			lastRound={latestRound}
-			roundCount={rounds.length}
 		/>
 	);
 
@@ -311,7 +329,7 @@ export default function App() {
 
 	return (
 		<div className="app">
-			<Header onRemoveAllRounds={handleRemoveAllRounds} onDeleteAll={handleDeleteAll} />
+			<Header status={headerStatus} onRemoveAllRounds={handleRemoveAllRounds} onDeleteAll={handleDeleteAll} />
 
 			{isMobile ? (
 				<>
