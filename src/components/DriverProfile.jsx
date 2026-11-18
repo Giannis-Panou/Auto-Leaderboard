@@ -139,9 +139,17 @@ export default function DriverProfile({ username, season, teamsByUser, platformO
 											<td>{e.dnf ? <span className="cell-dnf">DNF</span> : `P${e.place}`}</td>
 											{category && <td>{place(e.categoryPlace)}</td>}
 											<td className="cell-car">{e.car}</td>
-											<td>{formatTime(e.time)}</td>
-											<td>{e.pct > 100 ? formatGap(e.time - (e.time * 100) / e.pct) : '—'}</td>
-											<td>{formatPace(e.pct)}</td>
+											{e.retired ? (
+												<td colSpan={3} className="cell-empty">
+													Retired after {e.retiredAfter}
+												</td>
+											) : (
+												<>
+													<td>{formatTime(e.time)}</td>
+													<td>{e.pct > 100 ? formatGap(e.time - (e.time * 100) / e.pct) : '—'}</td>
+													<td>{formatPace(e.pct)}</td>
+												</>
+											)}
 											<td>{e.points}</td>
 											{category && <td>{e.categoryPoints}</td>}
 										</>

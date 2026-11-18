@@ -80,7 +80,11 @@ export function ResultsPanel({
 									? formatTime(entry.time)
 									: formatGap(entry.time - leaderTime)
 						}
-						valueTitle={`${formatTime(entry.time)} · ${formatPace(entry.pct)} of winner`}
+						valueTitle={
+							entry.retired
+								? `Retired after ${entry.retiredAfter}`
+								: `${formatTime(entry.time)} · ${formatPace(entry.pct)} of winner`
+						}
 						muted={entry.time !== leaderTime}
 					/>,
 					expanded === entry.username && (

@@ -28,15 +28,19 @@ export function isRealTeam(team) {
 export function mergeRoundFiles(files) {
 	const best = new Map();
 	files.forEach(({ name, rows }) =>
-		rows.forEach(({ username, car, time, timeStr, platform = '' }) => {
-			const current = best.get(username);
-			if (!current || time < current.time) {
-				best.set(username, { username, car, time, timeStr, platform, source: name });
+		rows.forEach(({ place, platform = '', ...row }) => {
+			const current = best.get(row.username);
+			if (!current || byFinish(row, current) < 0) {
+				best.set(row.username, { ...row, platform, source: name });
 			}
 		})
 	);
-	return [...best.values()].sort((a, b) => a.time - b.time);
+	return [...best.values()].sort(byFinish);
 }
+
+// Finishers by time, then drivers who retired (their time only covers the
+// stages they completed).
+const byFinish = (a, b) => Boolean(a.retired) - Boolean(b.retired) || a.time - b.time;
 
 // Short stable hash of a round's results, used to refuse duplicate loads.
 export function roundFingerprint(results) {
@@ -54,19 +58,23 @@ export function roundFingerprint(results) {
 export function scoreRound(round, teamsByUser, settings = DEFAULT_SETTINGS) {
 	const pointsArray = POINTS_SYSTEMS[settings.pointsSystem] || POINTS_SYSTEMS.WRC;
 	const teamContr = TEAM_SCORERS[settings.teamScorers] || 2;
-	const rows = [...round.results].sort((a, b) => a.time - b.time);
+	const rows = [...round.results].sort(byFinish);
 	const winnerTime = rows[0]?.time;
 
 	let place = 0;
 	const categoryCount = {};
 	const entries = rows.map((row) => {
 		const info = teamsByUser[row.username] || {};
-		const pct = (row.time / winnerTime) * 100;
-		const dnf = settings.dnfCutoff > 0 && pct > settings.dnfCutoff;
+		// A retirement has no comparable time, so no pace either.
+		const pct = row.retired ? null : (row.time / winnerTime) * 100;
+		const dnf = Boolean(row.retired) || (settings.dnfCutoff > 0 && pct > settings.dnfCutoff);
 		const entry = {
 			...row,
-			team: info.team || '',
-			category: info.category || '',
+			// The teams file wins; a league sheet's own team and category fill the gaps.
+			team: info.team || row.team || '',
+			category: info.category || row.category || '',
+			// League sheets have no platform column; the teams file knows it.
+			platform: row.platform || info.platform || '',
 			pct,
 			dnf,
 			place: null,

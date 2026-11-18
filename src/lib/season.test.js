@@ -43,6 +43,31 @@ describe('mergeRoundFiles', () => {
 	});
 });
 
+describe('retirements', () => {
+	it('places retired drivers last as DNFs and uses sheet teams as a fallback', () => {
+		const scored = scoreRound(
+			round('r', [row('out', 300, { retired: true, retiredAfter: 'SS 1', team: 'Sheet Team' }), row('fin', 600, { team: 'Sheet Team', category: 'CA3' })]),
+			{},
+			settings
+		);
+		expect(scored.entries.map((e) => [e.username, e.place, e.dnf, e.points, e.pct])).toEqual([
+			['fin', 1, false, 25, 100],
+			['out', null, true, 0, null],
+		]);
+		expect(scored.entries[0]).toMatchObject({ team: 'Sheet Team', category: 'CA3', categoryPlace: 1 });
+		expect(scored.teamPoints).toEqual({ 'Sheet Team': 25 });
+	});
+
+	it('takes the platform from the teams file when the results have none', () => {
+		const scored = scoreRound(
+			round('r', [row('sheet', 600, { platform: '' }), row('racenet', 610, { platform: 'XB' })]),
+			{ sheet: { platform: 'PS' }, racenet: { platform: 'PC' } },
+			settings
+		);
+		expect(scored.entries.map((e) => e.platform)).toEqual(['PS', 'XB']);
+	});
+});
+
 describe('roundFingerprint', () => {
 	it('is order-independent and changes with the results', () => {
 		const a = [row('ana', 1), row('ben', 2)];

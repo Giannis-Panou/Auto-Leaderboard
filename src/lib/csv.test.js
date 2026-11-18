@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { csvToJson, isTeamsFile, parseTime, teamCsvToJson, toCsv } from './csv';
+import { csvToJson, detectCsvKind, isTeamsFile, parseTime, stageSheetToJson, teamCsvToJson, toCsv } from './csv';
 
 describe('parseTime', () => {
 	it('parses hh:mm:ss.fffffff (Racenet format)', () => {
@@ -82,5 +82,43 @@ describe('helpers', () => {
 
 	it('quotes CSV output where needed', () => {
 		expect(toCsv([['Pos', 'Driver'], [1, 'Smith, Jr']])).toBe('Pos,Driver\r\n1,"Smith, Jr"');
+	});
+});
+
+describe('stageSheetToJson', () => {
+	// Two stage blocks side by side, each sorted on its own, as league sheets are.
+	const block = 'CAT POS,STAGE POS,+ / -,CATEGORY,DRIVER,TEAM,CAR,STAGE TIME,PENALTY,ACT. STAGE TIME,RALLY TIME,HANDICAP,STAGE DIFF,RALLY DIFF';
+	const sheet = [
+		'SS 1,,,,Hegyesd,,,,,,,ON,,,10.7,SPS 1,,,,Nagylőtér,,,,,,,OFF,,,9.74',
+		`${block},,${block},,RALLY POINTS`,
+		'1,1,-,CA1,Ana Real,Team One,Polo,05:00.000,,05:00.000,00:05:00.000,,,,,1,2,-,CA1,Ben Real,Team One,Polo,05:01.000,,05:01.000,00:10:02.000,,,,,50',
+		'2,2,-,CA1,Ben Real,Team One,Polo,05:01.000,,05:01.000,00:05:01.000,,,,,2,1,-,CA2,Cy Unknown,Privateer,Fabia,04:59.000,,04:59.000,00:10:05.000,,,,,42',
+		'3,3,-,CA2,Cy Unknown,Privateer,Fabia,05:06.000,,05:06.000,00:05:06.000,,,,,,,-,,,,,,,,,,,,0',
+		',,-,,,,,,,,,+00:00.000,-00:00.000,-00:00.000,,,,-,,,,,,,,,,,,',
+	].join('\n');
+	const teams = [{ username: 'ben_rn', name: 'ben real' }];
+
+	it('recognises stage sheets, entry lists and Racenet exports by their headers', () => {
+		expect(detectCsvKind(sheet)).toBe('stages');
+		expect(detectCsvKind('Name,RaceNet Name,NAT,Platform,Category,Team Name', 'ENTRIES.csv')).toBe('teams');
+		expect(detectCsvKind('Rank,DisplayName,Vehicle,Time', 'WRC2.csv')).toBe('results');
+	});
+
+	it('takes rally times from the last stage, matches real names and marks retirements', () => {
+		expect(stageSheetToJson(sheet, teams)).toEqual([
+			{ place: 1, username: 'ben_rn', car: 'Polo', time: 602000, timeStr: '00:10:02.000', platform: '', team: 'Team One', category: 'CA1' },
+			{ place: 2, username: 'Cy Unknown', car: 'Fabia', time: 605000, timeStr: '00:10:05.000', platform: '', team: 'Privateer', category: 'CA2' },
+			{ place: null, username: 'Ana Real', car: 'Polo', time: 300000, timeStr: '00:05:00.000', platform: '', team: 'Team One', category: 'CA1', retired: true, retiredAfter: 'SS 1' },
+		]);
+	});
+
+	it('reads sheets that label the columns REAL DRIVER / SIM DRIVER', () => {
+		const relabelled = sheet.replaceAll('DRIVER,TEAM', 'REAL DRIVER,SIM DRIVER');
+		expect(detectCsvKind(relabelled)).toBe('stages');
+		expect(stageSheetToJson(relabelled, teams)).toEqual(stageSheetToJson(sheet, teams));
+	});
+
+	it('returns nothing for files that are not stage sheets', () => {
+		expect(stageSheetToJson('Rank,DisplayName\n1,a')).toEqual([]);
 	});
 });

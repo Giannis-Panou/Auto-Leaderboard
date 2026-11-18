@@ -13,7 +13,7 @@ import { FlagIcon, GridIcon, TableIcon, TrophyIcon } from './components/Icons';
 import { ResultsPanel, Standings } from './components/Leaderboards';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useMediaQuery } from './hooks/useMediaQuery';
-import { csvToJson, isTeamsFile, teamCsvToJson } from './lib/csv';
+import { csvToJson, detectCsvKind, stageSheetToJson, teamCsvToJson } from './lib/csv';
 import { DEMO_TEAMS_FILE, DEMOS } from './lib/demos';
 import { CATEGORIES, POINTS_SYSTEM_OPTIONS, TEAM_SCORER_OPTIONS } from './lib/pointsSystems';
 import {
@@ -162,7 +162,8 @@ export default function App() {
 
 		const parsedFiles = [];
 		resultFiles.forEach(({ name, text }) => {
-			const rows = csvToJson(text);
+			const rows =
+				detectCsvKind(text, name) === 'stages' ? stageSheetToJson(text, currentTeams) : csvToJson(text);
 			if (rows.length) parsedFiles.push({ name, rows });
 			else notify(`${name}: no valid results found — check the file format.`, 'error');
 		});
@@ -202,14 +203,14 @@ export default function App() {
 	};
 
 	const handleUpload = async (files, roundName) => {
-		const teamFiles = files.filter((f) => isTeamsFile(f.name));
-		const csvFiles = files.filter((f) => !isTeamsFile(f.name));
-
-		const teamTexts = await Promise.all(teamFiles.map((f) => f.text()));
-		const resultFiles = await Promise.all(csvFiles.map(async (f) => ({ name: f.name, text: await f.text() })));
+		// Sorted by content, so an entry list works whatever it's called.
+		const read = await Promise.all(files.map(async (f) => ({ name: f.name, text: await f.text() })));
+		const isTeams = (f) => detectCsvKind(f.text, f.name) === 'teams';
+		const teamTexts = read.filter(isTeams).map((f) => f.text);
+		const resultFiles = read.filter((f) => !isTeams(f));
 		await ingest({ teamTexts, resultFiles, roundName });
 
-		if (csvFiles.length === 0 && teamTexts.length) {
+		if (resultFiles.length === 0 && teamTexts.length) {
 			notify(`Teams loaded: ${teamCsvToJson(teamTexts.at(-1)).length} drivers.`, 'success');
 		}
 	};

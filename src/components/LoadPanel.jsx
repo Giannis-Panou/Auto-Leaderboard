@@ -124,7 +124,10 @@ export default function LoadPanel({ settings, onSettingChange, onUpload, demos, 
 						</span>
 					</label>
 					</div>
-					<p className="dropzone-hint">Add teams.csv with them to set teams, categories and nationalities.</p>
+					<p className="dropzone-hint">
+						Racenet exports or a league stage sheet. Add teams.csv (or an entry list) with them to set teams,
+						categories and nationalities.
+					</p>
 				</Step>
 
 				<Step number="3" title="Name & submit" className="step-submit">

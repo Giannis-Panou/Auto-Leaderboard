@@ -88,7 +88,8 @@ export function teamCsvToJson(csv) {
 	};
 
 	return rows.flatMap((values) => {
-		const username = cell(values, col.username);
+		// No Racenet name: key the entry by real name, which league sheets use.
+		const username = cell(values, col.username) || cell(values, col.name);
 		if (!username) return [];
 		return {
 			username,
@@ -103,6 +104,106 @@ export function teamCsvToJson(csv) {
 
 export function isTeamsFile(name) {
 	return name.toLowerCase().includes('teams.csv');
+}
+
+const headerSet = (row) => new Set(row.map((h) => String(h).trim().toLowerCase()));
+const stageHeaderIndex = (rows) =>
+	rows.findIndex((row) => {
+		const h = headerSet(row);
+		return h.has('cat pos') && (h.has('driver') || h.has('real driver')) && h.has('rally time');
+	});
+
+// What a CSV holds, judged by its headers rather than its file name:
+// 'teams' (an entry list), 'stages' (a league stage-by-stage sheet) or 'results' (Racenet).
+export function detectCsvKind(text, name = '') {
+	if (isTeamsFile(name)) return 'teams';
+	const rows = parseRows(text).slice(0, 10);
+	if (stageHeaderIndex(rows) >= 0) return 'stages';
+	const first = headerSet(rows[0] || []);
+	if (first.has('racenet name') || (first.has('team name') && first.has('category'))) return 'teams';
+	return 'results';
+}
+
+// Names written by hand differ in case, spacing and accent encoding.
+export const nameKey = (name) => String(name).normalize('NFC').trim().replace(/\s+/g, ' ').toLowerCase();
+
+// League stage sheet -> the same rows as csvToJson, plus team, category and
+// retirements. The sheet has one block of columns per stage (SS 1 … SPS 2),
+// each sorted on its own; the last block holds the final rally times.
+// Drivers are matched to the teams list by real name to get their Racenet name;
+// anyone not in it keeps their real name and the sheet's team and category.
+export function stageSheetToJson(csv, teams = []) {
+	const rows = parseRows(csv);
+	const h = stageHeaderIndex(rows);
+	if (h < 0) return [];
+	const header = rows[h].map((c) => String(c).trim().toLowerCase());
+	const starts = header.flatMap((c, i) => (c === 'cat pos' ? [i] : []));
+	const titles = rows[h - 1] || [];
+
+	const blocks = starts.map((start, b) => {
+		const end = starts[b + 1] ?? header.length;
+		const find = (...names) => {
+			const i = header.slice(start, end).findIndex((c) => names.includes(c));
+			return i >= 0 ? start + i : -1;
+		};
+		return {
+			stage: cell(titles, start) || `Stage ${b + 1}`,
+			// Some sheets label these REAL DRIVER / SIM DRIVER; the "sim driver"
+			// column still holds the team name.
+			driver: find('driver', 'real driver'),
+			team: find('team', 'sim driver'),
+			category: find('category'),
+			car: find('car'),
+			rallyTime: find('rally time'),
+		};
+	});
+
+	// Follow every driver through the stages; the last block they appear in with
+	// a rally time is how far they got.
+	const drivers = new Map();
+	rows.slice(h + 1).forEach((values) =>
+		blocks.forEach((block, b) => {
+			const name = cell(values, block.driver);
+			const timeStr = cell(values, block.rallyTime);
+			const time = timeStr ? parseTime(timeStr) : NaN;
+			if (!name || isNaN(time) || time <= 0) return;
+			if (drivers.get(name)?.lastBlock > b) return;
+			drivers.set(name, {
+				name,
+				team: cell(values, block.team),
+				category: cell(values, block.category).toUpperCase(),
+				car: cell(values, block.car),
+				time,
+				timeStr,
+				lastBlock: b,
+			});
+		})
+	);
+
+	const byName = new Map(teams.filter((t) => t.name).map((t) => [nameKey(t.name), t]));
+	const lastBlock = blocks.length - 1;
+	const results = [...drivers.values()].map((d) => {
+		const known = byName.get(nameKey(d.name));
+		const row = {
+			username: known?.username || d.name,
+			car: d.car,
+			time: d.time,
+			timeStr: d.timeStr,
+			platform: '',
+			team: d.team,
+			category: d.category,
+		};
+		if (d.lastBlock < lastBlock) {
+			row.retired = true;
+			row.retiredAfter = blocks[d.lastBlock].stage;
+		}
+		return row;
+	});
+
+	let place = 0;
+	return results
+		.sort((a, b) => Boolean(a.retired) - Boolean(b.retired) || a.time - b.time)
+		.map((r) => (r.retired ? { place: null, ...r } : { place: ++place, ...r }));
 }
 
 // Rows of plain values -> CSV text (quotes anything that needs it).
