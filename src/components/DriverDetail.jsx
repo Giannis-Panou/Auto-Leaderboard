@@ -3,8 +3,12 @@ import { CloseIcon } from './Icons';
 import { Flag, PlatformBadge } from './DriverMeta';
 import PointsChart, { SERIES_COLORS } from './PointsChart';
 import Tabs from './Tabs';
-import { formatPace, formatTime } from '../lib/format';
-import { driverSummary, headToHead, rankMap, sortByPointsDesc } from '../lib/season';
+import { ProfileLink } from './Leaderboard';
+import { driverHref, teamHref } from '../hooks/useHashRoute';
+import { formatGap, formatPace, formatTime } from '../lib/format';
+import { driverSummary, headToHead, isRealTeam, rankMap, sortByPointsDesc } from '../lib/season';
+
+const NameHeading = ({ level, children }) => (level === 2 ? <h2>{children}</h2> : <h3>{children}</h3>);
 
 // Everything shown about one driver, ready for display.
 function profile(season, teamsByUser, username) {
@@ -47,10 +51,12 @@ function DriverHeading({ p, color }) {
 	);
 }
 
-// Inline driver profile, opened under the driver's row. `contextCategory` is
-// the category tab the profile was opened from (if any): comparisons are then
-// limited to that category and the chart starts on its points.
-export default function DriverDetail({ username, season, teamsByUser, platformOf, contextCategory, onClose }) {
+// Driver profile. variant "inline" opens under the driver's row; "page" is the
+// full profile page. `contextCategory` is the category tab an inline profile
+// was opened from (if any): comparisons are then limited to that category and
+// the chart starts on its points.
+export default function DriverDetail({ username, season, teamsByUser, platformOf, contextCategory, onClose, variant = 'inline' }) {
+	const isPage = variant === 'page';
 	const [compareWith, setCompareWith] = useState('');
 	const [mode, setMode] = useState(contextCategory ? 'category' : 'overall');
 
@@ -79,18 +85,29 @@ export default function DriverDetail({ username, season, teamsByUser, platformOf
 	const people = [a, b].filter(Boolean);
 
 	return (
-		<div className="driver-detail" role="region" aria-label={`${username} profile`}>
+		<div className={`driver-detail${isPage ? ' is-page' : ''}`} role="region" aria-label={`${username} profile`}>
 			<header className="detail-head">
 				<div className="detail-heading">
-					<h3>
+					<NameHeading level={isPage ? 2 : 3}>
 						<Flag nat={a.info.nat} />
 						<span>{a.username}</span>
-					</h3>
+					</NameHeading>
 					<p className="detail-sub">
 						{a.info.name && <span>{a.info.name}</span>}
-						<span>{a.info.team || 'No team'}</span>
+						{isRealTeam(a.info.team) ? (
+							<ProfileLink href={teamHref(a.info.team)} title={`${a.info.team} — open team page`}>
+								{a.info.team}
+							</ProfileLink>
+						) : (
+							<span>{a.info.team || 'No team'}</span>
+						)}
 						{a.category && <span className={`chip chip-${a.category.toLowerCase()}`}>{a.category}</span>}
 						<PlatformBadge platform={platformOf[username]} />
+						{!isPage && (
+							<ProfileLink href={driverHref(username)} className="open-page">
+								Open profile page →
+							</ProfileLink>
+						)}
 					</p>
 				</div>
 				<div className="detail-actions">
@@ -108,14 +125,16 @@ export default function DriverDetail({ username, season, teamsByUser, platformOf
 							</select>
 						</span>
 					</label>
-					<button type="button" className="icon-btn" aria-label={`Close ${username} profile`} onClick={onClose}>
-						<CloseIcon />
-					</button>
+					{!isPage && (
+						<button type="button" className="icon-btn" aria-label={`Close ${username} profile`} onClick={onClose}>
+							<CloseIcon />
+						</button>
+					)}
 				</div>
 			</header>
 
 			{b ? (
-				<div>
+				<div className="compare-wrap">
 					<table className="compare-table">
 						<thead>
 							<tr>
@@ -155,10 +174,10 @@ export default function DriverDetail({ username, season, teamsByUser, platformOf
 							<tr>
 								<th scope="row">Head-to-head</th>
 								<td>
-									<strong>{h2h.a}</strong> ahead
+									<strong>{h2h.a}</strong> round{h2h.a === 1 ? '' : 's'} ahead
 								</td>
 								<td>
-									<strong>{h2h.b}</strong> ahead
+									<strong>{h2h.b}</strong> round{h2h.b === 1 ? '' : 's'} ahead
 								</td>
 							</tr>
 							{[
@@ -191,7 +210,7 @@ export default function DriverDetail({ username, season, teamsByUser, platformOf
 				</div>
 			)}
 
-			<section className="detail-section">
+			<section className="detail-section chart-section">
 				<div className="detail-section-head">
 					<h4>{chartMode === 'category' ? `${a.category} points` : 'Championship points'}</h4>
 					{canShowCategory ? (
@@ -232,8 +251,12 @@ export default function DriverDetail({ username, season, teamsByUser, platformOf
 									<th scope="col">Round</th>
 									<th scope="col">Pos</th>
 									{a.category && <th scope="col">{a.category}</th>}
+									{isPage && <th scope="col">Car</th>}
 									<th scope="col">Time</th>
+									{isPage && <th scope="col">Gap</th>}
+									{isPage && <th scope="col">Pace</th>}
 									<th scope="col">Pts</th>
+									{isPage && a.category && <th scope="col">{a.category} pts</th>}
 								</tr>
 							)}
 						</thead>
@@ -253,15 +276,21 @@ export default function DriverDetail({ username, season, teamsByUser, platformOf
 											);
 										})
 									) : !r.entry ? (
-										<td colSpan={a.category ? 4 : 3} className="cell-empty">
+										<td colSpan={(a.category ? 4 : 3) + (isPage ? 3 + (a.category ? 1 : 0) : 0)} className="cell-empty">
 											Did not start
 										</td>
 									) : (
 										<>
 											<td>{r.entry.dnf ? <span className="cell-dnf">DNF</span> : `P${r.entry.place}`}</td>
 											{a.category && <td>{place(r.entry.categoryPlace)}</td>}
+											{isPage && <td className="cell-car">{r.entry.car}</td>}
 											<td title={`${formatPace(r.entry.pct)} of winner`}>{formatTime(r.entry.time)}</td>
+											{isPage && (
+												<td>{r.entry.pct > 100 ? formatGap(r.entry.time - (r.entry.time * 100) / r.entry.pct) : '—'}</td>
+											)}
+											{isPage && <td>{formatPace(r.entry.pct)}</td>}
 											<td>{r.entry.points}</td>
+											{isPage && a.category && <td>{r.entry.categoryPoints}</td>}
 										</>
 									)}
 								</tr>

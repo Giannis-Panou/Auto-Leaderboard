@@ -3,6 +3,7 @@ import { CountUp, Delta, deltaText, DetailItem, List, Panel, Row, useExpandedDri
 import ExportMenu from './ExportMenu';
 import Tabs from './Tabs';
 import { useFlip } from '../hooks/useFlip';
+import { driverHref, navigate, teamHref } from '../hooks/useHashRoute';
 import { formatGap, formatPace, formatTime } from '../lib/format';
 import { isRealTeam, rankMap, sortByPointsDesc } from '../lib/season';
 import { CATEGORIES } from '../lib/pointsSystems';
@@ -63,6 +64,7 @@ export function ResultsPanel({
 						index={index}
 						rank={entry.dnf ? '–' : placeOf(entry)}
 						name={entry.username}
+						href={driverHref(entry.username)}
 						driver
 						nat={teamsByUser[entry.username]?.nat}
 						platform={entry.platform}
@@ -90,7 +92,8 @@ export function ResultsPanel({
 	);
 }
 
-function StandingsPanel({ title, exportTitle, subtitle, board, prevBoard, rowProps, matches, tabs, switcher, listKey, notify, renderDetail, detailCategory }) {
+// renderDetail: rows open an inline driver profile. rowHref: rows open a page instead (teams).
+function StandingsPanel({ title, exportTitle, subtitle, board, prevBoard, rowProps, matches, tabs, switcher, listKey, notify, renderDetail, detailCategory, rowHref }) {
 	const listRef = useRef(null);
 	const [expanded, toggle, close] = useExpandedDriver();
 	useFlip(listRef, listKey);
@@ -139,7 +142,7 @@ function StandingsPanel({ title, exportTitle, subtitle, board, prevBoard, rowPro
 						rank={r.rank}
 						name={r.name}
 						{...rowProps(r.name)}
-						onSelect={renderDetail ? toggle : undefined}
+						onSelect={renderDetail ? toggle : rowHref ? (name) => navigate(rowHref(name)) : undefined}
 						expanded={expanded === r.name}
 						value={<CountUp value={r.points} />}
 						delta={<Delta change={r.change} />}
@@ -200,9 +203,11 @@ function DriverStandings({ season, teamsByUser, platformOf, filter, subtitle, re
 			tabs={<Tabs items={STANDINGS_TABS} value={category} onChange={setCategory} label="Driver standings category" />}
 			rowProps={(name) => ({
 				driver: true,
+				href: driverHref(name),
 				nat: teamsByUser[name]?.nat,
 				platform: platformOf[name],
 				sub: teamsByUser[name]?.team,
+				subHref: isRealTeam(teamsByUser[name]?.team) ? teamHref(teamsByUser[name].team) : undefined,
 				chip: isAll ? teamsByUser[name]?.category : undefined,
 			})}
 		/>
@@ -225,7 +230,8 @@ function TeamStandings({ season, filter, subtitle, notify, switcher }) {
 			notify={notify}
 			switcher={switcher}
 			matches={filter.matchesTeam}
-			rowProps={() => ({})}
+			rowHref={teamHref}
+			rowProps={(team) => ({ href: teamHref(team) })}
 		/>
 	);
 }

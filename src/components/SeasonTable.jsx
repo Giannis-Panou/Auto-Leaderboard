@@ -7,6 +7,7 @@ import { CloseIcon, DotsIcon } from './Icons';
 import { formatDateTime } from '../lib/format';
 import { isRealTeam, sortByPointsDesc } from '../lib/season';
 import { CATEGORIES } from '../lib/pointsSystems';
+import { driverHref, navigate, teamHref } from '../hooks/useHashRoute';
 
 const TABS = [
 	{ value: 'ALL', label: 'All' },
@@ -155,9 +156,9 @@ export default function SeasonTable({
 							{visible.map((r, index) => (
 								<Fragment key={r.name}>
 								<tr
-									className={`${isTeams ? '' : 'is-selectable'}${expanded === r.name ? ' is-expanded' : ''}`}
+									className={`is-selectable${expanded === r.name ? ' is-expanded' : ''}`}
 									style={{ '--i': Math.min(index, 20) }}
-									{...selectableRow(r.name, isTeams ? undefined : toggle, expanded === r.name)}
+									{...selectableRow(r.name, isTeams ? (team) => navigate(teamHref(team)) : toggle, expanded === r.name)}
 								>
 									<td className="col-pos">
 										<Badge rank={r.pos} />
@@ -166,6 +167,7 @@ export default function SeasonTable({
 										<NameCell
 											name={r.name}
 											driver={!isTeams}
+											href={isTeams ? teamHref(r.name) : driverHref(r.name)}
 											nat={isTeams ? undefined : teamsByUser[r.name]?.nat}
 											platform={isTeams ? undefined : platformOf[r.name]}
 											className="cell-name"

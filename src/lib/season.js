@@ -91,18 +91,19 @@ export function scoreRound(round, teamsByUser, settings = DEFAULT_SETTINGS) {
 	entries.forEach((e) => {
 		driverPoints[e.username] = e.points;
 		if (e.category) (categoryPoints[e.category] ||= {})[e.username] = e.categoryPoints;
-		if (isRealTeam(e.team)) (teamScores[e.team] ||= []).push(e.points);
+		if (isRealTeam(e.team)) (teamScores[e.team] ||= []).push({ username: e.username, points: e.points });
 	});
 
+	// Team score = best `teamContr` drivers; remember who counted.
 	const teamPoints = {};
+	const teamScorers = {};
 	Object.entries(teamScores).forEach(([team, scores]) => {
-		teamPoints[team] = scores
-			.sort((a, b) => b - a)
-			.slice(0, teamContr)
-			.reduce((sum, s) => sum + s, 0);
+		const counted = scores.sort((a, b) => b.points - a.points).slice(0, teamContr);
+		teamPoints[team] = counted.reduce((sum, s) => sum + s.points, 0);
+		teamScorers[team] = counted.map((s) => s.username);
 	});
 
-	return { ...round, entries, driverPoints, teamPoints, categoryPoints };
+	return { ...round, entries, driverPoints, teamPoints, teamScorers, categoryPoints };
 }
 
 const addInto = (target, points) => {
@@ -132,6 +133,68 @@ export function computeSeason(rounds, teamsByUser, settings = DEFAULT_SETTINGS) 
 		standings: totals(scored),
 		previous: scored.length > 1 ? totals(scored.slice(0, -1)) : null,
 	};
+}
+
+// Everything the team page needs about one team's season.
+export function teamSummary(season, team) {
+	const realTeams = Object.fromEntries(Object.entries(season.standings.teams).filter(([t]) => isRealTeam(t)));
+	const contributions = {}; // username -> points that counted for the team
+	const members = new Set();
+	let cumulative = 0;
+
+	const perRound = season.rounds.map((round) => {
+		const roster = round.entries.filter((e) => e.team === team);
+		roster.forEach((e) => members.add(e.username));
+		const points = round.teamPoints[team];
+		const scorers = round.teamScorers?.[team] || [];
+		scorers.forEach((name) => {
+			const entry = roster.find((e) => e.username === name);
+			contributions[name] = (contributions[name] || 0) + (entry?.points || 0);
+		});
+		cumulative += points || 0;
+		const roundRanks = rankMap(Object.fromEntries(Object.entries(round.teamPoints).filter(([t]) => isRealTeam(t))));
+		return {
+			id: round.id,
+			name: round.name,
+			started: roster.length > 0,
+			points: points ?? null,
+			roundPos: points === undefined ? null : roundRanks[team],
+			drivers: roster.length,
+			scorers,
+			cumulative,
+		};
+	});
+
+	const started = perRound.filter((r) => r.started);
+	const best = started.reduce((top, r) => (!top || r.points > top.points ? r : top), null);
+	return {
+		team,
+		pos: rankMap(realTeams)[team],
+		points: realTeams[team] || 0,
+		teamCount: Object.keys(realTeams).length,
+		perRound,
+		members: [...members],
+		contributions,
+		starts: started.length,
+		roundWins: started.filter((r) => r.roundPos === 1).length,
+		roundPodiums: started.filter((r) => r.roundPos && r.roundPos <= 3).length,
+		bestRound: best && { name: best.name, points: best.points },
+		avgPoints: started.length ? started.reduce((sum, r) => sum + r.points, 0) / started.length : null,
+	};
+}
+
+// Rounds where both teams scored: how often each one outscored the other.
+export function teamHeadToHead(season, a, b) {
+	let aAhead = 0;
+	let bAhead = 0;
+	season.rounds.forEach((round) => {
+		const pa = round.teamPoints[a];
+		const pb = round.teamPoints[b];
+		if (pa === undefined || pb === undefined || pa === pb) return;
+		if (pa > pb) aAhead++;
+		else bAhead++;
+	});
+	return { a: aAhead, b: bAhead };
 }
 
 // Rounds where both drivers finished: how often each one beat the other.

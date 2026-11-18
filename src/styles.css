@@ -2019,6 +2019,198 @@ select option {
 	max-width: 620px;
 }
 
+/* ==========================================================================
+   Profile pages (#/driver/<name>, #/team/<name>)
+   ========================================================================== */
+
+/* Names and team names that open a profile page */
+.profile-link {
+	color: inherit;
+	text-decoration: underline transparent;
+	text-underline-offset: 3px;
+	text-decoration-thickness: 2px;
+	transition: text-decoration-color 0.15s, color 0.15s;
+}
+
+.profile-link:hover,
+.profile-link:focus-visible {
+	text-decoration-color: var(--accent);
+	color: var(--text);
+}
+
+.open-page {
+	font-size: 0.8rem;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	color: var(--accent);
+	text-transform: uppercase;
+}
+
+.profile-page {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	animation: fade-up 0.25s var(--ease);
+}
+
+.page-nav {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	flex-wrap: wrap;
+}
+
+.back-btn {
+	min-height: 40px;
+	padding: 0 16px;
+	background: var(--surface);
+	border: 1px solid var(--line);
+	border-radius: var(--cut) 0 var(--cut) 0;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	font-size: 0.8rem;
+	cursor: pointer;
+	transition: background-color 0.15s, border-color 0.15s, transform 0.15s var(--ease);
+}
+
+.back-btn:hover {
+	background: var(--surface-raised);
+	border-color: var(--line-strong);
+	transform: translateX(-2px);
+}
+
+.page-crumb {
+	font-size: 0.85rem;
+	color: var(--muted);
+}
+
+.page-crumb strong {
+	color: var(--text);
+}
+
+/* The page version of a profile: roomier, two columns on wide screens */
+.driver-detail.is-page {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+	align-items: start;
+	gap: 22px 28px;
+	padding: 24px;
+	border-radius: 0 0 var(--cut) var(--cut);
+	animation: none;
+}
+
+/* Heading full width; chart left with stats (or the comparison) right;
+   the wide tables (results, drivers) full width below */
+.driver-detail.is-page > * {
+	grid-column: 1 / -1;
+}
+
+.driver-detail.is-page > .chart-section {
+	grid-column: 1;
+	grid-row: 2;
+}
+
+.driver-detail.is-page > .stat-grid,
+.driver-detail.is-page > .compare-wrap {
+	grid-column: 2;
+	grid-row: 2;
+	align-self: start;
+}
+
+.driver-detail.is-page > .stat-grid {
+	grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+}
+
+.team-mark {
+	margin-top: 0.08em;
+}
+
+.driver-detail.is-page .detail-head h2 {
+	display: flex;
+	align-items: flex-start;
+	gap: 12px;
+	margin: 0;
+	font-size: clamp(1.5rem, 3vw, 2.2rem);
+	overflow-wrap: anywhere;
+}
+
+.driver-detail.is-page .detail-head h2 .flag {
+	width: 36px;
+	height: 27px;
+}
+
+.driver-detail.is-page .chart {
+	max-width: none;
+}
+
+.team-mark {
+	flex: none;
+	width: 14px;
+	height: 1.1em;
+	background: var(--accent);
+	transform: skewX(var(--skew));
+	box-shadow: 9px 0 0 -3px var(--accent);
+}
+
+.roster-compare {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+	gap: 16px;
+}
+
+.roster-table thead th:first-child {
+	white-space: nowrap;
+}
+
+.roster-table thead th:first-child .legend-swatch {
+	margin-right: 8px;
+	vertical-align: middle;
+}
+
+.roster-name {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.cell-scorers {
+	white-space: normal !important;
+	text-align: left !important;
+	color: var(--text-soft);
+}
+
+.cell-car {
+	max-width: 200px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	color: var(--text-soft);
+}
+
+@media (max-width: 1100px) {
+	.driver-detail.is-page,
+	.roster-compare {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.driver-detail.is-page > .chart-section,
+	.driver-detail.is-page > .stat-grid,
+	.driver-detail.is-page > .compare-wrap {
+		grid-column: 1;
+		grid-row: auto;
+	}
+}
+
+@media (max-width: 768px) {
+	.driver-detail.is-page {
+		padding: 16px 12px;
+	}
+
+	.page-crumb {
+		display: none;
+	}
+}
+
 @keyframes detail-in {
 	from {
 		opacity: 0;

@@ -3,6 +3,8 @@ import {
 	computeSeason,
 	driverSummary,
 	headToHead,
+	teamHeadToHead,
+	teamSummary,
 	isRealTeam,
 	mergeRoundFiles,
 	rankMap,
@@ -123,6 +125,37 @@ describe('driverSummary', () => {
 		// ben is the only CA2 driver in each round, so wins the category every time he finishes
 		expect(ben.perRound.map((r) => r.categoryCumulative)).toEqual([25, 50, 50]);
 		expect(ben.avgPace).toBeCloseTo(105);
+	});
+});
+
+describe('teamSummary / teamHeadToHead', () => {
+	const season = computeSeason(
+		[
+			// Red: ana 25 + ben 17 count (dan 12 doesn't, 2 scorers); Blue: cat 15
+			round('r1', [row('ana', 100), row('ben', 110), row('cat', 120), row('dan', 130)]),
+			// Red: dan 25 + ana 15; Blue: cat 17
+			round('r2', [row('dan', 100), row('cat', 110), row('ana', 120)]),
+		],
+		teamsByUser,
+		settings
+	);
+
+	it('records which drivers counted for the team each round', () => {
+		expect(season.rounds[0].teamScorers.Red).toEqual(['ana', 'ben']);
+		expect(season.rounds[1].teamScorers.Red).toEqual(['dan', 'ana']);
+	});
+
+	it('summarises a team across rounds', () => {
+		const red = teamSummary(season, 'Red');
+		expect(red).toMatchObject({ pos: 1, points: 82, starts: 2, roundWins: 2, teamCount: 2 });
+		expect(red.perRound.map((r) => r.cumulative)).toEqual([42, 82]);
+		expect(red.contributions).toEqual({ ana: 40, ben: 17, dan: 25 });
+		expect(red.members.sort()).toEqual(['ana', 'ben', 'dan']);
+		expect(red.bestRound).toEqual({ name: 'r1', points: 42 });
+	});
+
+	it('counts rounds each team outscored the other', () => {
+		expect(teamHeadToHead(season, 'Red', 'Blue')).toEqual({ a: 2, b: 0 });
 	});
 });
 

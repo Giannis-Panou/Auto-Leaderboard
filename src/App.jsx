@@ -1,4 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import ProfilePage from './components/ProfilePage';
+import { goHome, useHashRoute } from './hooks/useHashRoute';
 import Header from './components/Header';
 import LoadPanel from './components/LoadPanel';
 import FilterBar from './components/FilterBar';
@@ -53,6 +55,24 @@ const newId = () => globalThis.crypto?.randomUUID?.() ?? `${Date.now().toString(
 
 export default function App() {
 	const isMobile = useMediaQuery('(max-width: 768px)');
+	const route = useHashRoute(); // { page: 'driver' | 'team', name } on a profile page
+
+	// Profile pages open at the top; leaving one returns to where you were in the lists.
+	const listScroll = useRef(0);
+	const prevRoute = useRef(route);
+	useEffect(() => {
+		const remember = () => {
+			if (!window.location.hash.startsWith('#/')) listScroll.current = window.scrollY;
+		};
+		window.addEventListener('scroll', remember, { passive: true });
+		return () => window.removeEventListener('scroll', remember);
+	}, []);
+	useLayoutEffect(() => {
+		const wasPage = prevRoute.current;
+		prevRoute.current = route;
+		if (route) window.scrollTo({ top: 0 });
+		else if (wasPage) window.scrollTo({ top: listScroll.current });
+	}, [route]);
 	const { toasts, notify, dismiss } = useToasts();
 	const [confirm, confirmDialog] = useConfirm();
 
@@ -331,12 +351,18 @@ export default function App() {
 		/>
 	);
 
+	const profilePage = route && (
+		<ProfilePage route={route} season={season} teamsByUser={teamsByUser} platformOf={platformOf} />
+	);
+
 	return (
 		<div className="app">
 			<Header status={headerStatus} />
 
 			{isMobile ? (
 				<>
+					{profilePage || (
+					<>
 					<button
 						type="button"
 						className={`btn load-toggle ${uploadOpen ? 'btn-ghost' : 'btn-accent'}`}
@@ -364,12 +390,15 @@ export default function App() {
 						{mobileView === 'standings' && standings}
 						{mobileView === 'season' && seasonTable}
 					</main>
+					</>
+					)}
 
 					<nav className="tabbar" aria-label="Sections">
 						<Tabs
 							items={MOBILE_VIEWS}
-							value={mobileView}
+							value={route ? null : mobileView}
 							onChange={(view) => {
+								if (route) goHome();
 								setMobileView(view);
 								window.scrollTo({ top: 0 });
 							}}
@@ -377,6 +406,8 @@ export default function App() {
 						/>
 					</nav>
 				</>
+			) : profilePage ? (
+				profilePage
 			) : (
 				<>
 					{loadPanel}

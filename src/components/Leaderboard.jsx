@@ -46,15 +46,30 @@ export function Badge({ rank, className = '' }) {
 	return <span className={`badge${podium} ${className}`}>{rank}</span>;
 }
 
-// Driver/team name. Drivers get a flag (the "rest of the world" flag when
-// they have no nationality); teams don't.
-export function NameCell({ name, driver, nat, platform, className = 'row-name' }) {
+// Link to a profile page; clicking it never also toggles the row it sits in.
+export function ProfileLink({ href, children, className = '', title }) {
+	return (
+		<a className={`profile-link ${className}`} href={href} title={title} onClick={(e) => e.stopPropagation()}>
+			{children}
+		</a>
+	);
+}
+
+// Driver/team name, a link to its profile page when `href` is set. Drivers
+// get a flag (the "rest of the world" flag when they have no nationality).
+export function NameCell({ name, driver, nat, platform, href, className = 'row-name' }) {
 	return (
 		<span className={className}>
 			{driver && <Flag nat={nat} />}
-			<span className="name-text" title={name}>
-				{name}
-			</span>
+			{href ? (
+				<ProfileLink href={href} className="name-text" title={`${name} — open profile page`}>
+					{name}
+				</ProfileLink>
+			) : (
+				<span className="name-text" title={name}>
+					{name}
+				</span>
+			)}
 			<PlatformBadge platform={platform} />
 		</span>
 	);
@@ -68,7 +83,10 @@ export function selectableRow(name, onSelect, expanded) {
 		tabIndex: 0,
 		'aria-expanded': expanded,
 		'aria-label': `${name} — ${expanded ? 'hide' : 'show'} driver profile`,
-		onClick: () => onSelect(name),
+		onClick: (e) => {
+			if (e.target.closest('a')) return; // links inside the row do their own thing
+			onSelect(name);
+		},
 		onKeyDown: (e) => {
 			if (e.target !== e.currentTarget) return;
 			if (e.key === 'Enter' || e.key === ' ') {
@@ -81,7 +99,25 @@ export function selectableRow(name, onSelect, expanded) {
 
 // One leaderboard row. `index` drives the staggered reveal animation.
 // With onSelect, clicking anywhere on the row toggles the driver profile.
-export function Row({ rank, index, name, driver, nat, platform, onSelect, expanded, sub, chip, value, valueTitle, muted, delta, dnf }) {
+export function Row({
+	rank,
+	index,
+	name,
+	href,
+	driver,
+	nat,
+	platform,
+	onSelect,
+	expanded,
+	sub,
+	subHref,
+	chip,
+	value,
+	valueTitle,
+	muted,
+	delta,
+	dnf,
+}) {
 	return (
 		<li
 			className={`row${sub ? ' has-sub' : ''}${dnf ? ' is-dnf' : ''}${onSelect ? ' is-selectable' : ''}${expanded ? ' is-expanded' : ''}`}
@@ -90,12 +126,17 @@ export function Row({ rank, index, name, driver, nat, platform, onSelect, expand
 			{...selectableRow(name, onSelect, expanded)}
 		>
 			<Badge rank={rank} />
-			<NameCell name={name} driver={driver} nat={nat} platform={platform} />
-			{sub && (
-				<span className="row-sub" title={sub}>
-					{sub}
-				</span>
-			)}
+			<NameCell name={name} driver={driver} nat={nat} platform={platform} href={href} />
+			{sub &&
+				(subHref ? (
+					<ProfileLink href={subHref} className="row-sub" title={`${sub} — open team page`}>
+						{sub}
+					</ProfileLink>
+				) : (
+					<span className="row-sub" title={sub}>
+						{sub}
+					</span>
+				))}
 			{chip && <span className={`chip chip-${chip.toLowerCase()}`}>{chip}</span>}
 			<span className={`row-value${muted ? ' is-muted' : ''}`} title={valueTitle}>
 				{delta}
