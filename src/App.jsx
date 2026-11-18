@@ -290,6 +290,15 @@ export default function App() {
 	// Team compare panel, under a team's row.
 	const renderTeamDetail = (team, close) => <TeamCompare team={team} season={season} onClose={close} />;
 
+	// Logo: back to the main page (Event view, top of the page) from anywhere.
+	const goToMain = () => {
+		listScroll.current = 0;
+		if (route) goHome();
+		setDesktopView('event');
+		setMobileView('event');
+		window.scrollTo({ top: 0, behavior: route ? 'auto' : 'smooth' });
+	};
+
 	// ---- Pieces ----------------------------------------------------------------
 	const loadPanel = (
 		<LoadPanel
@@ -363,7 +372,7 @@ export default function App() {
 
 	return (
 		<div className="app">
-			<Header status={headerStatus} />
+			<Header status={headerStatus} onHome={goToMain} />
 
 			{isMobile ? (
 				<>

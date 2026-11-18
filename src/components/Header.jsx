@@ -40,7 +40,14 @@ function TimingBlock({ label, children, className = '' }) {
 
 // Header as a timing screen: name + tagline and the season's live state.
 // A slim copy pins to the top of the page once you scroll past it.
-export default function Header({ status }) {
+export default function Header({ status, onHome }) {
+	// The logo is a link to the main page (plain click handled in-app; ctrl/cmd-click opens a new tab).
+	const goHomeClick = (e) => {
+		if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+		e.preventDefault();
+		onHome();
+	};
+
 	const headerRef = useRef(null);
 	const [pinned, setPinned] = useState(false);
 
@@ -63,7 +70,9 @@ export default function Header({ status }) {
 
 				<div className="brand-block">
 					<h1>
-						<Wordmark />
+						<a className="brand-link" href={window.location.pathname} onClick={goHomeClick} aria-label="Parc Fermé — main page">
+							<Wordmark />
+						</a>
 					</h1>
 					<p className="tagline">Sim rally championship</p>
 				</div>
@@ -106,7 +115,7 @@ export default function Header({ status }) {
 
 			{/* Slim header pinned while scrolling (desktop). Hidden from assistive tech: it repeats the header. */}
 			<div className={`compact-bar${pinned ? ' is-visible' : ''}`} aria-hidden="true" inert={pinned ? undefined : ''}>
-				<button type="button" className="compact-home" tabIndex={-1} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+				<button type="button" className="compact-home" tabIndex={-1} onClick={onHome}>
 					<Wordmark small />
 				</button>
 				{round && (
